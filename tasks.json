@@ -1,0 +1,11 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Start Giga Server",
+      "type": "shell",
+      "command": "cd Server && npm install && npm start",
+      "problemMatcher": []
+    }
+  ]
+}
