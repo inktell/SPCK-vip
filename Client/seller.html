@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Trang bán hàng - Giga Shop</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        .seller-shell {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 1.5rem;
+        }
+
+        .seller-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+            padding: 1.25rem 1.5rem;
+            background: var(--surface-color);
+            border: 1px solid var(--border-color);
+            border-radius: 24px;
+        }
+
+        .seller-header h1 {
+            margin: 0;
+            color: var(--text-color);
+            font-size: 1.75rem;
+        }
+
+        .seller-header p {
+            margin: 0.25rem 0 0;
+            color: var(--text-secondary);
+        }
+
+        .seller-actions {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            flex-wrap: wrap;
+        }
+
+        .seller-back {
+            padding: 0.7rem 1rem;
+            border-radius: 999px;
+            background: transparent;
+            color: var(--text-color);
+            text-decoration: none;
+            font-weight: 700;
+            border: 1px solid var(--border-color);
+        }
+
+        .seller-logout {
+            padding: 0.7rem 1rem;
+            border-radius: 999px;
+            border: none;
+            background: var(--secondary-color);
+            color: #fff;
+            font-weight: 800;
+            cursor: pointer;
+        }
+
+        .seller-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .seller-card {
+            background: #fff;
+            border-radius: 24px;
+            border: 1px solid var(--border-color);
+            padding: 1.2rem;
+            box-shadow: 0 12px 30px rgba(32,24,16,0.06);
+        }
+
+        .seller-card h2 {
+            margin: 0;
+            color: var(--text-color);
+            font-size: 1.05rem;
+        }
+
+        .stat-value {
+            margin-top: 0.75rem;
+            font-size: 2rem;
+            font-weight: 800;
+            color: var(--secondary-color);
+        }
+
+        .stat-caption {
+            margin-top: 0.25rem;
+            color: var(--text-secondary);
+        }
+
+        .seller-board {
+            background: #fff;
+            border-radius: 24px;
+            border: 1px solid var(--border-color);
+            padding: 1.25rem;
+        }
+
+        .seller-board h2 {
+            margin: 0 0 0.75rem;
+            font-size: 1.15rem;
+            color: var(--text-color);
+        }
+
+        .seller-products {
+            display: grid;
+            gap: 0.75rem;
+        }
+
+        .product-row {
+            display: grid;
+            grid-template-columns: 1.2fr 0.8fr 0.6fr auto;
+            gap: 0.75rem;
+            align-items: center;
+            padding: 0.9rem 1rem;
+            border-radius: 16px;
+            background: var(--surface-color);
+            border: 1px solid var(--border-color);
+        }
+
+        .product-row strong {
+            display: block;
+            color: var(--text-color);
+        }
+
+        .product-row small {
+            display: block;
+            color: var(--text-secondary);
+            margin-top: 0.25rem;
+        }
+
+        .product-price {
+            font-weight: 700;
+            color: var(--secondary-color);
+        }
+
+        .product-status {
+            padding: 0.4rem 0.55rem;
+            border-radius: 999px;
+            font-size: 0.72rem;
+            font-weight: 800;
+            background: rgba(31, 199, 119, 0.12);
+            color: #1a6b3a;
+        }
+
+        .product-status.inactive {
+            background: rgba(255, 86, 86, 0.12);
+            color: #8b2a2a;
+        }
+
+        .toggle-btn {
+            border: none;
+            border-radius: 999px;
+            padding: 0.55rem 0.8rem;
+            background: linear-gradient(135deg, var(--primary-color), #b99e77);
+            color: var(--text-color);
+            font-weight: 800;
+            cursor: pointer;
+        }
+
+        @media (max-width: 900px) {
+            .seller-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .product-row {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <nav>
+            <div class="logo">Giga</div>
+            <ul>
+                <li><a href="index.html">Trang chủ</a></li>
+                <li><a href="#products">Sản phẩm</a></li>
+                <li><a href="order.html">Giỏ hàng</a></li>
+                <li><a href="/AI/public/index.html">Trợ giúp AI</a></li>
+                <li><a id="account-link" href="login.html">Tài khoản</a></li>
+            </ul>
+        </nav>
+    </header>
+    <div class="seller-shell">
+        <div class="seller-header">
+            <div>
+                <h1>Trang bán hàng</h1>
+                <p>Quản lý sản phẩm và tồn kho nhanh cho gian hàng Giga Shop.</p>
+            </div>
+            <div class="seller-actions">
+                <button id="logout-btn" class="seller-logout" type="button">Đăng xuất</button>
+                <a class="seller-back" href="index.html">← Về trang chủ</a>
+            </div>
+        </div>
+
+        <div class="seller-grid">
+            <section class="seller-card">
+                <h2>Sản phẩm đang bán</h2>
+                <div id="active-count" class="stat-value">0</div>
+                <p class="stat-caption">Số sản phẩm đang hiển thị trên cửa hàng.</p>
+            </section>
+            <section class="seller-card">
+                <h2>Đã ẩn</h2>
+                <div id="inactive-count" class="stat-value">0</div>
+                <p class="stat-caption">Sản phẩm tạm ngừng bán để kiểm soát danh mục.</p>
+            </section>
+            <section class="seller-card">
+                <h2>Tài khoản</h2>
+                <div id="seller-email" class="stat-value" style="font-size:1.1rem; word-break: break-all;">--</div>
+                <p class="stat-caption">Vai trò: người bán</p>
+            </section>
+        </div>
+
+        <section class="seller-board">
+            <h2>Danh sách sản phẩm</h2>
+            <div id="seller-products" class="seller-products"></div>
+        </section>
+    </div>
+
+    <script src="seller.js"></script>
+</body>
+</html>

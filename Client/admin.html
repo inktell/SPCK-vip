@@ -1,0 +1,1495 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Giga Admin Dashboard</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Mono:wght@400;500&family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #ffffff;
+    --panel: #fff9f3;
+    --card: #ffffff;
+    --border: #e6ddd2;
+    --text: #1a1a1a;
+    --muted: #6b6b6b;
+    --accent: #cdbfa3; /* cream */
+    --accent2: #f57224; /* CTA */
+    --green: #24c483;
+    --red: #ff6b6b;
+    --blue: #5b9cf6;
+    --orange: #f0874a;
+    --font: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    --mono: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    --serif: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    --radius-sm: 6px;
+    --radius-md: 8px;
+    --radius-lg: 10px;
+  }
+
+  html, body {
+    height: 100%;
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--font);
+    font-size: 14px;
+    line-height: 1.5;
+  }
+
+  /* ── Layout Shell ── */
+  .shell {
+    display: grid;
+    grid-template-columns: 220px 1fr;
+    grid-template-rows: 56px 1fr;
+    height: 100vh;
+    overflow: hidden;
+  }
+
+  /* ── Top Bar ── */
+  .topbar {
+    grid-column: 1 / -1;
+    background: var(--panel);
+    border-bottom: 0.5px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 24px;
+    z-index: 10;
+  }
+
+  .logo {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    font-family: var(--font);
+    font-size: 19px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    color: var(--text);
+    text-decoration: none;
+  }
+
+  .logo-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: var(--accent);
+    box-shadow: 0 0 12px rgba(0, 212, 255, 0.9);
+    flex-shrink: 0;
+  }
+
+  .top-right {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .icon-btn {
+    position: relative;
+    background: none;
+    border: 0.5px solid var(--border);
+    border-radius: var(--radius-sm);
+    color: var(--muted);
+    padding: 7px 9px;
+    cursor: pointer;
+    font-size: 17px;
+    line-height: 1;
+    transition: color 0.15s, border-color 0.15s;
+    display: flex;
+    align-items: center;
+  }
+
+  .icon-btn:hover { color: var(--text); border-color: #444; }
+
+  .icon-btn .notif-dot {
+    position: absolute;
+    top: 5px;
+    right: 5px;
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--red);
+    border: 1.5px solid var(--panel);
+  }
+
+  .avatar-btn {
+    width: 33px;
+    height: 33px;
+    border-radius: 50%;
+    background: var(--accent);
+    border: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    font-weight: 600;
+    color: #2a1f0a;
+    cursor: pointer;
+    font-family: var(--font);
+  }
+
+  /* ── Sidebar ── */
+  .sidebar {
+    background: var(--panel);
+    border-right: 0.5px solid var(--border);
+    padding: 20px 0 16px;
+    display: flex;
+    flex-direction: column;
+    overflow-y: auto;
+  }
+
+  .nav-section { margin-bottom: 6px; }
+
+  .nav-label {
+    font-size: 10px;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 1.6px;
+    color: var(--muted);
+    padding: 8px 20px 4px;
+  }
+
+  .nav-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 20px;
+    cursor: pointer;
+    color: var(--muted);
+    font-size: 13px;
+    transition: all 0.15s;
+    border-left: 2px solid transparent;
+    user-select: none;
+  }
+
+  .nav-item i { font-size: 17px; flex-shrink: 0; }
+
+  .nav-item:hover {
+    color: var(--text);
+    background: rgba(200, 169, 110, 0.05);
+  }
+
+  .nav-item.active {
+    color: var(--accent);
+    border-left-color: var(--accent);
+    background: rgba(0, 212, 255, 0.12);
+  }
+
+  .nav-badge {
+    margin-left: auto;
+    background: var(--red);
+    color: #fff;
+    font-size: 10px;
+    border-radius: 20px;
+    padding: 1px 7px;
+    font-weight: 600;
+    min-width: 20px;
+    text-align: center;
+  }
+
+  /* ── Main Content ── */
+  .main {
+    padding: 28px 28px 28px;
+    overflow-y: auto;
+    background: var(--bg);
+  }
+
+  /* ── Pages ── */
+  .page { display: none; }
+  .page.active { display: block; }
+
+  .page-header { margin-bottom: 24px; }
+
+  .page-title {
+    font-family: var(--serif);
+    font-size: 26px;
+    font-weight: 400;
+    color: var(--text);
+  }
+
+  .page-sub {
+    font-size: 13px;
+    color: var(--muted);
+    margin-top: 3px;
+  }
+
+  /* ── Stats Grid ── */
+  .stats-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+    margin-bottom: 20px;
+  }
+
+  .stat-card {
+    background: var(--card);
+    border: 0.5px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 18px 16px;
+  }
+
+  .stat-label {
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 1.2px;
+    color: var(--muted);
+    margin-bottom: 10px;
+  }
+
+  .stat-value {
+    font-size: 28px;
+    font-weight: 300;
+    letter-spacing: -1px;
+    line-height: 1;
+  }
+
+  .stat-value.val-danger { color: var(--red); }
+  .stat-value.val-success { color: var(--green); }
+
+  .stat-change {
+    font-size: 11px;
+    color: var(--muted);
+    margin-top: 6px;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+
+  .stat-change i { font-size: 12px; }
+  .stat-change.up { color: var(--green); }
+  .stat-change.down { color: var(--red); }
+
+  /* ── Two-Column Row ── */
+  .row2 {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin-bottom: 16px;
+  }
+
+  /* ── Panel Box ── */
+  .panel-box {
+    background: var(--card);
+    border: 0.5px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 18px;
+  }
+
+  .panel-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 16px;
+  }
+
+  .panel-head h3 {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text);
+  }
+
+  .link-btn {
+    font-size: 12px;
+    color: var(--accent);
+    cursor: pointer;
+    background: none;
+    border: none;
+    font-family: var(--font);
+    transition: opacity 0.15s;
+  }
+
+  .link-btn:hover { opacity: 0.75; }
+
+  /* ── Bar Chart ── */
+  .bar-chart-wrap {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .bar-chart {
+    display: flex;
+    align-items: flex-end;
+    gap: 8px;
+    height: 90px;
+  }
+
+  .bar-col {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0;
+  }
+
+  .bar {
+    width: 100%;
+    border-radius: 3px 3px 0 0;
+    background: var(--border);
+    transition: background 0.2s, height 0.4s;
+    cursor: pointer;
+  }
+
+  .bar:hover { background: var(--accent); }
+
+  .bar-day {
+    font-size: 9px;
+    color: var(--muted);
+    text-align: center;
+    margin-top: 5px;
+  }
+
+  /* ── Activity List ── */
+  .activity-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+  }
+
+  .activity-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 0;
+    border-bottom: 0.5px solid var(--border);
+  }
+
+  .activity-item:last-child { border-bottom: none; }
+
+  .a-icon {
+    width: 30px;
+    height: 30px;
+    border-radius: 7px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    flex-shrink: 0;
+  }
+
+  .ai-blue  { background: rgba(91,156,246,.13); color: var(--blue); }
+  .ai-green { background: rgba(76,175,125,.13); color: var(--green); }
+  .ai-red   { background: rgba(224,92,92,.13);  color: var(--red); }
+  .ai-amber { background: rgba(200,169,110,.13);color: var(--accent); }
+  .ai-orange{ background: rgba(240,135,74,.13); color: var(--orange); }
+
+  .a-text {
+    flex: 1;
+    font-size: 12px;
+    color: var(--muted);
+    line-height: 1.4;
+  }
+
+  .a-text b { color: var(--text); font-weight: 500; }
+
+  .a-time {
+    font-size: 10px;
+    color: var(--muted);
+    font-family: var(--mono);
+    flex-shrink: 0;
+  }
+
+  /* ── Progress Bars (top products) ── */
+  .prog-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 6px 0;
+  }
+
+  .prog-emoji { font-size: 22px; flex-shrink: 0; }
+
+  .prog-info { flex: 1; }
+
+  .prog-top {
+    display: flex;
+    justify-content: space-between;
+    font-size: 13px;
+    margin-bottom: 5px;
+  }
+
+  .prog-bar {
+    height: 4px;
+    background: var(--border);
+    border-radius: 2px;
+    overflow: hidden;
+  }
+
+  .prog-fill {
+    height: 100%;
+    border-radius: 2px;
+    background: var(--accent);
+  }
+
+  /* ── Search Bar ── */
+  .search-bar {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: var(--card);
+    border: 0.5px solid var(--border);
+    border-radius: var(--radius-md);
+    padding: 9px 14px;
+    margin-bottom: 14px;
+    transition: border-color 0.15s;
+  }
+
+  .search-bar:focus-within { border-color: var(--accent); }
+
+  .search-bar i { color: var(--muted); font-size: 16px; flex-shrink: 0; }
+
+  .search-bar input {
+    background: none;
+    border: none;
+    outline: none;
+    color: var(--text);
+    font-family: var(--font);
+    font-size: 13px;
+    flex: 1;
+    width: 100%;
+  }
+
+  .search-bar input::placeholder { color: var(--muted); }
+
+  /* ── Filter Row ── */
+  .filter-row {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-bottom: 16px;
+    align-items: center;
+  }
+
+  .filter-btn {
+    background: none;
+    border: 0.5px solid var(--border);
+    border-radius: var(--radius-sm);
+    color: var(--muted);
+    padding: 5px 13px;
+    cursor: pointer;
+    font-size: 12px;
+    font-family: var(--font);
+    transition: all 0.15s;
+  }
+
+  .filter-btn:hover {
+    border-color: #444;
+    color: var(--text);
+  }
+
+  .filter-btn.active {
+    border-color: var(--accent);
+    color: var(--accent);
+    background: rgba(200, 169, 110, 0.08);
+  }
+
+  /* ── Table ── */
+  .table-wrap { overflow-x: auto; }
+
+  table { width: 100%; border-collapse: collapse; }
+
+  th {
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 1.2px;
+    color: var(--muted);
+    text-align: left;
+    padding: 8px 12px;
+    border-bottom: 0.5px solid var(--border);
+    white-space: nowrap;
+  }
+
+  td {
+    padding: 10px 12px;
+    border-bottom: 0.5px solid rgba(255,255,255,.04);
+    font-size: 13px;
+    vertical-align: middle;
+  }
+
+  tr:last-child td { border-bottom: none; }
+  tr:hover td { background: rgba(255,255,255,.02); }
+
+  /* ── Tags ── */
+  .tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 11px;
+    padding: 2px 9px;
+    border-radius: 20px;
+    font-weight: 500;
+    white-space: nowrap;
+  }
+
+  .tag-green  { background: rgba(76,175,125,.15); color: var(--green); }
+  .tag-red    { background: rgba(224,92,92,.15);  color: var(--red); }
+  .tag-orange { background: rgba(240,135,74,.15); color: var(--orange); }
+  .tag-blue   { background: rgba(91,156,246,.15); color: var(--blue); }
+  .tag-amber  { background: rgba(200,169,110,.15);color: var(--accent2); }
+  .tag-gray   { background: rgba(136,136,136,.15);color: var(--muted); }
+
+  /* ── User Cell ── */
+  .user-cell {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .u-avatar {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 10px;
+    font-weight: 600;
+    flex-shrink: 0;
+  }
+
+  .u-name { font-weight: 500; font-size: 13px; }
+  .u-email { color: var(--muted); font-size: 11px; }
+
+  /* ── Action Buttons ── */
+  .action-btn {
+    background: none;
+    border: 0.5px solid var(--border);
+    border-radius: var(--radius-sm);
+    color: var(--muted);
+    padding: 5px 9px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: all 0.15s;
+    line-height: 1;
+  }
+
+  .action-btn:hover { border-color: var(--accent); color: var(--accent); }
+  .action-btn.danger:hover { border-color: var(--red); color: var(--red); }
+
+  /* ── Price ── */
+  .price {
+    font-family: var(--mono);
+    font-size: 13px;
+    color: var(--accent2);
+  }
+
+  /* ── Toggle Switch ── */
+  .toggle {
+    width: 38px;
+    height: 21px;
+    border-radius: 11px;
+    cursor: pointer;
+    position: relative;
+    border: none;
+    transition: background 0.2s;
+    flex-shrink: 0;
+  }
+
+  .toggle.on  { background: var(--accent); }
+  .toggle.off { background: var(--border); }
+
+  .toggle::after {
+    content: '';
+    position: absolute;
+    width: 15px;
+    height: 15px;
+    border-radius: 50%;
+    background: #fff;
+    top: 3px;
+    transition: left 0.2s;
+  }
+
+  .toggle.on::after  { left: 20px; }
+  .toggle.off::after { left: 3px; }
+
+  /* ── Report Cards ── */
+  .report-card {
+    background: var(--card);
+    border: 0.5px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 16px 18px;
+    margin-bottom: 10px;
+    transition: border-color 0.15s;
+  }
+
+  .report-card:hover { border-color: #3a3a3a; }
+
+  .report-card.resolved { opacity: 0.55; }
+
+  .report-head {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 10px;
+  }
+
+  .report-title { font-size: 13px; font-weight: 500; color: var(--text); }
+
+  .report-meta {
+    font-size: 11px;
+    color: var(--muted);
+    margin-top: 3px;
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    flex-wrap: wrap;
+  }
+
+  .sev-dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+
+  .sev-high   { background: var(--red); }
+  .sev-medium { background: var(--orange); }
+  .sev-low    { background: var(--green); }
+
+  .report-desc {
+    font-size: 12px;
+    color: var(--muted);
+    line-height: 1.6;
+    margin-bottom: 12px;
+  }
+
+  .report-footer {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+
+  .btn-resolve {
+    background: rgba(76,175,125,.1);
+    border: 0.5px solid rgba(76,175,125,.3);
+    color: var(--green);
+    padding: 5px 13px;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    font-size: 12px;
+    font-family: var(--font);
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    transition: background 0.15s;
+  }
+
+  .btn-resolve:hover { background: rgba(76,175,125,.2); }
+
+  .btn-dismiss {
+    background: none;
+    border: 0.5px solid var(--border);
+    color: var(--muted);
+    padding: 5px 13px;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    font-size: 12px;
+    font-family: var(--font);
+    transition: all 0.15s;
+  }
+
+  .btn-dismiss:hover { border-color: #444; color: var(--text); }
+
+  .reporter-label {
+    font-size: 11px;
+    color: var(--muted);
+    margin-left: auto;
+  }
+
+  /* ── Empty State ── */
+  .empty-state {
+    text-align: center;
+    padding: 48px 24px;
+    color: var(--muted);
+  }
+
+  .empty-state i {
+    font-size: 44px;
+    display: block;
+    margin-bottom: 10px;
+    opacity: 0.3;
+  }
+
+  .empty-state p { font-size: 13px; }
+
+  /* ── Settings ── */
+  .setting-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 0;
+    border-bottom: 0.5px solid var(--border);
+  }
+
+  .setting-row:last-child { border-bottom: none; }
+
+  .setting-label { font-size: 13px; font-weight: 500; color: var(--text); }
+  .setting-sub   { font-size: 11px; color: var(--muted); margin-top: 2px; }
+
+  /* ── Scrollbar ── */
+  ::-webkit-scrollbar { width: 6px; height: 6px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+  ::-webkit-scrollbar-thumb:hover { background: #444; }
+</style>
+</head>
+<body>
+
+<div class="shell">
+
+  <!-- TOP BAR -->
+  <header class="topbar">
+    <div class="logo">
+      <span class="logo-dot"></span>
+      Giga Admin
+    </div>
+    <div class="top-right">
+      <button class="icon-btn" onclick="navigate('reports')" title="Bug Reports">
+        <i class="ti ti-bell"></i>
+        <span class="notif-dot" id="notif-dot"></span>
+      </button>
+      <div class="avatar-btn" title="Admin">A</div>
+    </div>
+  </header>
+
+  <!-- SIDEBAR -->
+  <nav class="sidebar">
+    <div class="nav-section">
+      <div class="nav-label">Overview</div>
+      <div class="nav-item active" onclick="navigate('dashboard')">
+        <i class="ti ti-layout-dashboard"></i> Dashboard
+      </div>
+    </div>
+    <div class="nav-section">
+      <div class="nav-label">Manage</div>
+      <div class="nav-item" onclick="navigate('users')">
+        <i class="ti ti-users"></i> Users
+      </div>
+      <div class="nav-item" onclick="navigate('products')">
+        <i class="ti ti-package"></i> Products
+      </div>
+    </div>
+    <div class="nav-section">
+      <div class="nav-label">Reports</div>
+      <div class="nav-item" id="nav-reports" onclick="navigate('reports')">
+        <i class="ti ti-alert-circle"></i> Bug Reports
+        <span class="nav-badge" id="report-badge">3</span>
+      </div>
+    </div>
+    <div class="nav-section" style="margin-top: auto;">
+      <div class="nav-label">System</div>
+      <div class="nav-item" onclick="navigate('settings')">
+        <i class="ti ti-settings"></i> Settings
+      </div>
+    </div>
+  </nav>
+
+  <!-- MAIN -->
+  <main class="main">
+
+    <!-- ═══════════════════ DASHBOARD PAGE ═══════════════════ -->
+    <div class="page active" id="page-dashboard">
+      <div class="page-header">
+        <div class="page-title">Good morning, Giga Admin</div>
+        <div class="page-sub">Here's what's happening in your shop today.</div>
+      </div>
+
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-label">Total Users</div>
+          <div class="stat-value">1,284</div>
+          <div class="stat-change up"><i class="ti ti-trending-up"></i> +12% this week</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Active Products</div>
+          <div class="stat-value" id="active-products-count">0</div>
+          <div class="stat-change up"><i class="ti ti-trending-up"></i> +3 added</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Open Reports</div>
+          <div class="stat-value val-danger" id="dash-open-reports">3</div>
+          <div class="stat-change down"><i class="ti ti-alert-triangle"></i> Needs attention</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Sales Today</div>
+          <div class="stat-value">$1,847</div>
+          <div class="stat-change up"><i class="ti ti-trending-up"></i> +8.4% vs yesterday</div>
+        </div>
+      </div>
+
+      <div class="row2">
+        <div class="panel-box">
+          <div class="panel-head">
+            <h3>Orders This Week</h3>
+            <button class="link-btn">See details</button>
+          </div>
+          <div class="bar-chart-wrap">
+            <div class="bar-chart" id="bar-chart"></div>
+            <div style="display:flex; gap:8px;" id="bar-labels"></div>
+          </div>
+        </div>
+        <div class="panel-box">
+          <div class="panel-head">
+            <h3>Recent Activity</h3>
+            <button class="link-btn">View all</button>
+          </div>
+          <div class="activity-list">
+            <div class="activity-item">
+              <div class="a-icon ai-blue"><i class="ti ti-user-plus"></i></div>
+              <div class="a-text"><b>New user registered</b> — linh.ng@email.com</div>
+              <div class="a-time">2m ago</div>
+            </div>
+            <div class="activity-item">
+              <div class="a-icon ai-red"><i class="ti ti-alert-circle"></i></div>
+              <div class="a-text"><b>Bug report</b> — Wireless Headset pairing issue</div>
+              <div class="a-time">14m ago</div>
+            </div>
+            <div class="activity-item">
+              <div class="a-icon ai-green"><i class="ti ti-check"></i></div>
+              <div class="a-text"><b>Report resolved</b> — Smartwatch sync bug fixed</div>
+              <div class="a-time">1h ago</div>
+            </div>
+            <div class="activity-item">
+              <div class="a-icon ai-amber"><i class="ti ti-package"></i></div>
+              <div class="a-text"><b>Product updated</b> — Wireless Headset price changed</div>
+              <div class="a-time">2h ago</div>
+            </div>
+            <div class="activity-item">
+              <div class="a-icon ai-orange"><i class="ti ti-user-off"></i></div>
+              <div class="a-text"><b>User suspended</b> — spam.user@mail.com</div>
+              <div class="a-time">3h ago</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="panel-box">
+        <div class="panel-head">
+          <h3>Top Selling Products</h3>
+          <button class="link-btn" onclick="navigate('products')">Manage products →</button>
+        </div>
+        <div id="top-products-list" style="display:flex; flex-direction:column; gap:4px;"></div>
+      </div>
+    </div>
+
+    <!-- ═══════════════════ USERS PAGE ═══════════════════ -->
+    <div class="page" id="page-users">
+      <div class="page-header">
+        <div class="page-title">User Management</div>
+        <div class="page-sub" id="users-sub">1,284 registered accounts</div>
+      </div>
+      <div class="search-bar">
+        <i class="ti ti-search"></i>
+        <input type="text" id="user-search" placeholder="Search by name or email…" oninput="filterUsers(this.value)">
+      </div>
+      <div class="filter-row" id="user-filters">
+        <button class="filter-btn active" onclick="setUserFilter(this,'all')">All</button>
+        <button class="filter-btn" onclick="setUserFilter(this,'active')">Active</button>
+        <button class="filter-btn" onclick="setUserFilter(this,'suspended')">Suspended</button>
+        <button class="filter-btn" onclick="setUserFilter(this,'admin')">Admin</button>
+        <button class="filter-btn" onclick="setUserFilter(this,'vip')">VIP</button>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>User</th>
+              <th>Join Date</th>
+              <th>Orders</th>
+              <th>Status</th>
+              <th>Role</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="user-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ═══════════════════ PRODUCTS PAGE ═══════════════════ -->
+    <div class="page" id="page-products">
+      <div class="page-header">
+        <div class="page-title">Product Management</div>
+        <div class="page-sub">42 products in catalog</div>
+      </div>
+      <div class="search-bar">
+        <i class="ti ti-search"></i>
+        <input type="text" id="prod-search" placeholder="Search products…" oninput="filterProducts(this.value)">
+      </div>
+      <div class="filter-row" id="prod-filters">
+        <button class="filter-btn active" onclick="setProdFilter(this,'all')">All</button>
+        <button class="filter-btn" onclick="setProdFilter(this,'electronics')">Electronics</button>
+        <button class="filter-btn" onclick="setProdFilter(this,'fashion')">Fashion</button>
+        <button class="filter-btn" onclick="setProdFilter(this,'beauty')">Beauty</button>
+        <button class="filter-btn" onclick="setProdFilter(this,'home')">Home</button>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Product</th>
+              <th>Category</th>
+              <th>Price</th>
+              <th>Stock</th>
+              <th>Reported</th>
+              <th>Available</th>
+            </tr>
+          </thead>
+          <tbody id="prod-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ═══════════════════ REPORTS PAGE ═══════════════════ -->
+    <div class="page" id="page-reports">
+      <div class="page-header">
+        <div class="page-title">Bug Reports</div>
+        <div class="page-sub" id="reports-sub">3 open reports need your review</div>
+      </div>
+      <div class="filter-row" id="report-filters">
+        <button class="filter-btn active" onclick="setReportFilter(this,'open')">Open</button>
+        <button class="filter-btn" onclick="setReportFilter(this,'resolved')">Resolved</button>
+        <button class="filter-btn" onclick="setReportFilter(this,'all')">All</button>
+      </div>
+      <div id="report-list"></div>
+    </div>
+
+    <!-- ═══════════════════ SETTINGS PAGE ═══════════════════ -->
+    <div class="page" id="page-settings">
+      <div class="page-header">
+        <div class="page-title">Settings</div>
+        <div class="page-sub">System configuration</div>
+      </div>
+      <div class="panel-box" style="max-width:500px">
+        <div class="setting-row">
+          <div>
+            <div class="setting-label">Email notifications</div>
+            <div class="setting-sub">Receive alerts on new bug reports</div>
+          </div>
+          <button class="toggle on" onclick="this.classList.toggle('on'); this.classList.toggle('off')"></button>
+        </div>
+        <div class="setting-row">
+          <div>
+            <div class="setting-label">Auto-resolve low severity</div>
+            <div class="setting-sub">Automatically dismiss minor reports after 7 days</div>
+          </div>
+          <button class="toggle off" onclick="this.classList.toggle('on'); this.classList.toggle('off')"></button>
+        </div>
+        <div class="setting-row">
+          <div>
+            <div class="setting-label">Maintenance mode</div>
+            <div class="setting-sub">Temporarily disable ordering for all users</div>
+          </div>
+          <button class="toggle off" onclick="this.classList.toggle('on'); this.classList.toggle('off')"></button>
+        </div>
+        <div class="setting-row">
+          <div>
+            <div class="setting-label">New user welcome email</div>
+            <div class="setting-sub">Send onboarding email on registration</div>
+          </div>
+          <button class="toggle on" onclick="this.classList.toggle('on'); this.classList.toggle('off')"></button>
+        </div>
+        <div class="setting-row">
+          <div>
+            <div class="setting-label">Report digest (weekly)</div>
+            <div class="setting-sub">Email summary of all reports every Monday</div>
+          </div>
+          <button class="toggle off" onclick="this.classList.toggle('on'); this.classList.toggle('off')"></button>
+        </div>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<script>
+  /* ─────────────────────────────────────────────
+     DATA
+  ───────────────────────────────────────────── */
+  const AVATAR_COLORS = [
+    { bg: 'rgba(200,169,110,.18)', fg: '#c8a96e' },
+    { bg: 'rgba(91,156,246,.18)',  fg: '#5b9cf6' },
+    { bg: 'rgba(76,175,125,.18)', fg: '#4caf7d' },
+    { bg: 'rgba(240,135,74,.18)', fg: '#f0874a' },
+    { bg: 'rgba(224,92,92,.18)',  fg: '#e05c5c' },
+    { bg: 'rgba(161,140,251,.18)',fg: '#a18cfb' },
+  ];
+
+  const PRODUCT_CACHE_KEY = 'giga_products_cache';
+
+  function getProductEmoji(name, category = '') {
+    const haystack = `${name} ${category}`.toLowerCase();
+    if (haystack.includes('backpack')) return '🎒';
+    if (haystack.includes('headset') || haystack.includes('earbud') || haystack.includes('audio')) return '🎧';
+    if (haystack.includes('watch') || haystack.includes('smartwatch')) return '⌚';
+    if (haystack.includes('shoe') || haystack.includes('hoodie')) return '👟';
+    if (haystack.includes('charger') || haystack.includes('mouse')) return '🔌';
+    if (haystack.includes('lamp')) return '💡';
+    if (haystack.includes('serum') || haystack.includes('mask')) return '🧴';
+    if (haystack.includes('organizer') || haystack.includes('mug')) return '🛍️';
+    if (haystack.includes('case')) return '📱';
+    return '📦';
+  }
+
+  function normalizeCategory(category, name) {
+    const haystack = `${category || ''} ${name || ''}`.toLowerCase();
+    if (haystack.includes('watch') || haystack.includes('headset') || haystack.includes('charger') || haystack.includes('mouse') || haystack.includes('case') || haystack.includes('smartwatch')) return 'electronics';
+    if (haystack.includes('shoe') || haystack.includes('backpack') || haystack.includes('hoodie')) return 'fashion';
+    if (haystack.includes('serum') || haystack.includes('mask')) return 'beauty';
+    if (haystack.includes('lamp') || haystack.includes('organizer') || haystack.includes('mug')) return 'home';
+    return 'electronics';
+  }
+
+  function readSharedProducts() {
+    try {
+      const cached = localStorage.getItem(PRODUCT_CACHE_KEY) || sessionStorage.getItem(PRODUCT_CACHE_KEY);
+      if (cached) {
+        const parsed = JSON.parse(cached);
+        if (Array.isArray(parsed) && parsed.length) {
+          return parsed.map((item, index) => ({
+            id: item.id || `shared-${index + 1}`,
+            name: item.name || item.title || `Product ${index + 1}`,
+            emoji: getProductEmoji(item.name || item.title || '', item.category || item.cat || ''),
+            cat: normalizeCategory(item.category || item.cat || '', item.name || item.title || ''),
+            price: Number(item.price || 0),
+            stock: item.stock || 'in stock',
+            reported: Boolean(item.reported),
+            available: item.available !== false,
+          }));
+        }
+      }
+    } catch (error) {}
+
+    return [
+      { name:'iPhone 15 Case',            emoji:'📱', cat:'electronics', price:299000, stock:'in stock', reported:false, available:true  },
+      { name:'Wireless Headset',          emoji:'🎧', cat:'electronics', price:890000, stock:'low',      reported:true,  available:true  },
+      { name:'Running Shoes',             emoji:'👟', cat:'fashion',     price:599000, stock:'in stock', reported:false, available:true  },
+      { name:'Classic Backpack',          emoji:'🎒', cat:'fashion',     price:499000, stock:'in stock', reported:false, available:true  },
+      { name:'Vitamin C Serum',           emoji:'🧴', cat:'beauty',      price:249000, stock:'low',      reported:false, available:true  },
+      { name:'Smartwatch',                emoji:'⌚', cat:'electronics', price:1290000, stock:'out',      reported:false, available:false },
+      { name:'Desk Lamp',                 emoji:'💡', cat:'home',        price:399000, stock:'in stock', reported:false, available:true  },
+      { name:'Storage Organizer',         emoji:'🧺', cat:'home',        price:355000, stock:'in stock', reported:true,  available:true  },
+      { name:'USB-C Charger',             emoji:'🔌', cat:'electronics', price:199000, stock:'in stock', reported:false, available:true  },
+      { name:'Men’s Hoodie',              emoji:'🧥', cat:'fashion',     price:449000, stock:'low',      reported:false, available:true  },
+      { name:'Face Mask Pack',            emoji:'🧼', cat:'beauty',      price:155000, stock:'in stock', reported:false, available:true  },
+      { name:'Travel Mug',                emoji:'🛍️', cat:'home',        price:189000, stock:'in stock', reported:false, available:true  },
+    ];
+  }
+
+  let products = readSharedProducts();
+
+  const users = [
+    { name:'Linh Nguyen',    email:'linh.ng@email.com',    joined:'Jan 12, 2025', orders:47,  status:'active',    role:'customer' },
+    { name:'Minh Tran',      email:'minh.tr@email.com',    joined:'Feb 3, 2025',  orders:31,  status:'active',    role:'customer' },
+    { name:'Thu Pham',       email:'thu.ph@email.com',     joined:'Mar 20, 2025', orders:8,   status:'active',    role:'customer' },
+    { name:'Duc Le',         email:'duc.le@email.com',     joined:'Dec 5, 2024',  orders:102, status:'active',    role:'vip'      },
+    { name:'Spam User',      email:'spam.user@mail.com',   joined:'Apr 1, 2025',  orders:0,   status:'suspended', role:'customer' },
+    { name:'Admin Account',  email:'admin@giga.com',     joined:'Jan 1, 2024',  orders:0,   status:'active',    role:'admin'    },
+    { name:'Ha Vo',          email:'ha.vo@email.com',      joined:'May 2, 2025',  orders:5,   status:'active',    role:'customer' },
+    { name:'Long Bui',       email:'long.bui@email.com',   joined:'May 10, 2025', orders:2,   status:'active',    role:'customer' },
+    { name:'Trang Nguyen',   email:'trang.ng@email.com',   joined:'Apr 15, 2025', orders:19,  status:'active',    role:'customer' },
+    { name:'Khoa Dinh',      email:'khoa.di@email.com',    joined:'Mar 3, 2025',  orders:55,  status:'active',    role:'vip'      },
+  ];
+
+  const reports = [
+    {
+      id:'RPT-001', title:'Wireless Headset — pairing issue',
+      user:'linh.ng@email.com', product:'Wireless Headset',
+      desc:'The wireless headset disconnects during calls and fails to reconnect automatically. Reproducible on mobile and desktop apps. ',
+      severity:'high', time:'14 min ago', status:'open'
+    },
+    {
+      id:'RPT-002', title:'Smartwatch — wrong charger detected',
+      user:'duc.le@email.com', product:'Smartwatch',
+      desc:'The smartwatch is being paired with the wrong charger bundle in checkout, causing the selected accessory to disappear from the order summary.',
+      severity:'medium', time:'2 hours ago', status:'open'
+    },
+    {
+      id:'RPT-003', title:'Payment page freezes on iOS Safari',
+      user:'ha.vo@email.com', product:'General',
+      desc:'On iPhone 14 Pro using Safari, the payment confirmation page freezes after tapping "Place Order". Order sometimes goes through, sometimes it does not. Very inconsistent.',
+      severity:'high', time:'5 hours ago', status:'open'
+    },
+    {
+      id:'RPT-004', title:'USB-C Charger not appearing in search results',
+      user:'long.bui@email.com', product:'USB-C Charger',
+      desc:'USB-C Charger does not appear when searching "charger" or "usb" in the catalog search bar. It is only visible when browsing the full product list manually.',
+      severity:'low', time:'1 day ago', status:'resolved'
+    },
+    {
+      id:'RPT-005', title:'Profile photo upload returns error',
+      user:'minh.tr@email.com', product:'General',
+      desc:'Attempting to upload a profile photo returns a generic error dialog with no details. Tested with multiple file sizes and formats including JPEG and PNG under 5MB.',
+      severity:'medium', time:'2 days ago', status:'resolved'
+    },
+  ];
+
+  /* ─────────────────────────────────────────────
+     STATE
+  ───────────────────────────────────────────── */
+  let currentPage     = 'dashboard';
+  let userFilterState = 'all';
+  let userSearch      = '';
+  let prodFilterState = 'all';
+  let prodSearch      = '';
+  let reportFilter    = 'open';
+
+  /* ─────────────────────────────────────────────
+     NAVIGATION
+  ───────────────────────────────────────────── */
+  const PAGE_ORDER = ['dashboard','users','products','reports','settings'];
+
+  function navigate(page) {
+    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+    document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+
+    document.getElementById('page-' + page).classList.add('active');
+    const idx = PAGE_ORDER.indexOf(page);
+    document.querySelectorAll('.nav-item')[idx].classList.add('active');
+
+    currentPage = page;
+
+    if (page === 'reports')  renderReports();
+    if (page === 'users')    renderUsers();
+    if (page === 'products') renderProducts();
+  }
+
+  /* ─────────────────────────────────────────────
+     BAR CHART
+  ───────────────────────────────────────────── */
+  function initBarChart() {
+    const days = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+    const vals = [62, 85, 74, 91, 108, 143, 97];
+    const max  = Math.max(...vals);
+
+    const chartEl  = document.getElementById('bar-chart');
+    const labelsEl = document.getElementById('bar-labels');
+
+    chartEl.innerHTML  = '';
+    labelsEl.innerHTML = '';
+
+    days.forEach((day, i) => {
+      const col = document.createElement('div');
+      col.className = 'bar-col';
+
+      const bar = document.createElement('div');
+      bar.className = 'bar';
+      bar.style.height = Math.round((vals[i] / max) * 100) + '%';
+      bar.title = vals[i] + ' orders';
+
+      col.appendChild(bar);
+      chartEl.appendChild(col);
+
+      const lbl = document.createElement('div');
+      lbl.className = 'bar-day';
+      lbl.style.flex = '1';
+      lbl.style.textAlign = 'center';
+      lbl.textContent = day;
+      labelsEl.appendChild(lbl);
+    });
+  }
+
+  /* ─────────────────────────────────────────────
+     USERS
+  ───────────────────────────────────────────── */
+  function renderUsers() {
+    const tbody = document.getElementById('user-tbody');
+
+    const filtered = users.filter(u => {
+      const f = userFilterState;
+      const matchF =
+        f === 'all' ||
+        (f === 'active'    && u.status === 'active') ||
+        (f === 'suspended' && u.status === 'suspended') ||
+        (f === 'admin'     && u.role === 'admin') ||
+        (f === 'vip'       && u.role === 'vip');
+
+      const q = userSearch.toLowerCase();
+      const matchS = !q || u.name.toLowerCase().includes(q) || u.email.toLowerCase().includes(q);
+
+      return matchF && matchS;
+    });
+
+    tbody.innerHTML = filtered.map((u, i) => {
+      const initials = u.name.split(' ').map(n => n[0]).join('').toUpperCase();
+      const ac = AVATAR_COLORS[i % AVATAR_COLORS.length];
+
+      const statusTag = u.status === 'active'
+        ? '<span class="tag tag-green">● Active</span>'
+        : '<span class="tag tag-red">● Suspended</span>';
+
+      const roleTag =
+        u.role === 'admin'    ? '<span class="tag tag-blue">Admin</span>' :
+        u.role === 'vip'      ? '<span class="tag tag-amber">VIP</span>' :
+                                '<span class="tag tag-gray">Customer</span>';
+
+      return `
+        <tr>
+          <td>
+            <div class="user-cell">
+              <div class="u-avatar" style="background:${ac.bg}; color:${ac.fg}">${initials}</div>
+              <div>
+                <div class="u-name">${u.name}</div>
+                <div class="u-email">${u.email}</div>
+              </div>
+            </div>
+          </td>
+          <td style="color:var(--muted); font-size:12px">${u.joined}</td>
+          <td style="font-family:var(--mono)">${u.orders}</td>
+          <td>${statusTag}</td>
+          <td>${roleTag}</td>
+          <td>
+            <div style="display:flex; gap:6px">
+              <button class="action-btn" title="Edit"><i class="ti ti-edit"></i></button>
+              <button class="action-btn danger" title="Delete"><i class="ti ti-trash"></i></button>
+            </div>
+          </td>
+        </tr>`;
+    }).join('');
+  }
+
+  function filterUsers(q) {
+    userSearch = q;
+    renderUsers();
+  }
+
+  function setUserFilter(btn, f) {
+    document.querySelectorAll('#user-filters .filter-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    userFilterState = f;
+    renderUsers();
+  }
+
+  /* ─────────────────────────────────────────────
+     PRODUCTS
+  ───────────────────────────────────────────── */
+  function formatCurrency(value) {
+    return new Intl.NumberFormat('vi-VN', {
+      style: 'currency',
+      currency: 'VND',
+      maximumFractionDigits: 0,
+    }).format(Number(value || 0));
+  }
+
+  function refreshCatalog() {
+    products = readSharedProducts();
+    const activeCount = document.getElementById('active-products-count');
+    if (activeCount) activeCount.textContent = products.length;
+
+    const pageSub = document.querySelector('#page-products .page-sub');
+    if (pageSub) pageSub.textContent = `${products.length} products in catalog`;
+
+    renderTopProducts();
+    renderProducts();
+  }
+
+  function renderTopProducts() {
+    const list = document.getElementById('top-products-list');
+    if (!list) return;
+
+    const topItems = products.slice(0, 4);
+    const maxPrice = Math.max(...topItems.map(item => Number(item.price || 0)));
+
+    list.innerHTML = topItems.map((item, index) => {
+      const width = Math.max(20, Math.round((Number(item.price || 0) / maxPrice) * 100));
+      return `
+        <div class="prog-row">
+          <span class="prog-emoji">${item.emoji}</span>
+          <div class="prog-info">
+            <div class="prog-top"><span>${item.name}</span><span class="price">${formatCurrency(item.price)}</span></div>
+            <div class="prog-bar"><div class="prog-fill" style="width:${width}%"></div></div>
+          </div>
+        </div>`;
+    }).join('');
+  }
+
+  function renderProducts() {
+    const tbody = document.getElementById('prod-tbody');
+    const q = prodSearch.toLowerCase();
+
+    const filtered = products.filter(p => {
+      const matchCat = prodFilterState === 'all' || p.cat === prodFilterState;
+      const matchQ   = !q || p.name.toLowerCase().includes(q);
+      return matchCat && matchQ;
+    });
+
+    tbody.innerHTML = filtered.map(p => {
+      const stockTag =
+        p.stock === 'in stock' ? '<span class="tag tag-green">In stock</span>' :
+        p.stock === 'low'      ? '<span class="tag tag-orange">Low stock</span>' :
+                                 '<span class="tag tag-red">Out of stock</span>';
+
+      const repTag = p.reported
+        ? '<span class="tag tag-red"><i class="ti ti-alert-triangle" style="font-size:10px"></i> Reported</span>'
+        : '<span class="tag tag-gray">None</span>';
+
+      const togClass = p.available ? 'on' : 'off';
+
+      return `
+        <tr>
+          <td>
+            <div class="user-cell">
+              <span style="font-size:22px; width:34px; text-align:center">${p.emoji}</span>
+              <span style="font-weight:500">${p.name}</span>
+            </div>
+          </td>
+          <td style="text-transform:capitalize; color:var(--muted); font-size:12px">${p.cat}</td>
+          <td class="price">${formatCurrency(p.price)}</td>
+          <td>${stockTag}</td>
+          <td>${repTag}</td>
+          <td>
+            <button class="toggle ${togClass}"
+              onclick="this.classList.toggle('on'); this.classList.toggle('off')">
+            </button>
+          </td>
+        </tr>`;
+    }).join('');
+  }
+
+  function filterProducts(q) {
+    prodSearch = q;
+    renderProducts();
+  }
+
+  function setProdFilter(btn, f) {
+    document.querySelectorAll('#prod-filters .filter-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    prodFilterState = f;
+    renderProducts();
+  }
+
+  /* ─────────────────────────────────────────────
+     REPORTS
+  ───────────────────────────────────────────── */
+  function renderReports() {
+    const list = document.getElementById('report-list');
+    const openCount = reports.filter(r => r.status === 'open').length;
+
+    document.getElementById('reports-sub').textContent =
+      openCount > 0
+        ? `${openCount} open report${openCount !== 1 ? 's' : ''} need${openCount === 1 ? 's' : ''} your review`
+        : 'All reports have been resolved';
+
+    const filtered = reports.filter(r =>
+      reportFilter === 'all'
+        ? true
+        : r.status === reportFilter
+    );
+
+    if (!filtered.length) {
+      list.innerHTML = `
+        <div class="empty-state">
+          <i class="ti ti-checks"></i>
+          <p>No reports in this category</p>
+        </div>`;
+      return;
+    }
+
+    list.innerHTML = filtered.map(r => {
+      const sevClass = r.severity === 'high' ? 'sev-high' : r.severity === 'medium' ? 'sev-medium' : 'sev-low';
+      const sevLabel = r.severity.charAt(0).toUpperCase() + r.severity.slice(1);
+
+      const statusTag = r.status === 'open'
+        ? '<span class="tag tag-red">Open</span>'
+        : '<span class="tag tag-green">Resolved</span>';
+
+      const actions = r.status === 'open'
+        ? `<button class="btn-resolve" onclick="resolveReport('${r.id}')">
+             <i class="ti ti-check"></i> Resolve
+           </button>
+           <button class="btn-dismiss" onclick="dismissReport('${r.id}')">Dismiss</button>`
+        : '<span style="font-size:12px; color:var(--muted)">Closed</span>';
+
+      const cardClass = r.status === 'resolved' ? 'report-card resolved' : 'report-card';
+
+      return `
+        <div class="${cardClass}" id="rcard-${r.id}">
+          <div class="report-head">
+            <div>
+              <div class="report-title">${r.title}</div>
+              <div class="report-meta">
+                <div class="sev-dot ${sevClass}"></div>
+                ${r.id} · ${sevLabel} severity · ${r.time} ·
+                <b style="color:var(--text)">${r.product}</b>
+              </div>
+            </div>
+            ${statusTag}
+          </div>
+          <div class="report-desc">${r.desc}</div>
+          <div class="report-footer">
+            ${actions}
+            <span class="reporter-label">Reported by ${r.user}</span>
+          </div>
+        </div>`;
+    }).join('');
+  }
+
+  function resolveReport(id) {
+    const r = reports.find(x => x.id === id);
+    if (!r) return;
+    r.status = 'resolved';
+    updateBadge();
+    renderReports();
+  }
+
+  function dismissReport(id) {
+    const r = reports.find(x => x.id === id);
+    if (!r) return;
+    r.status = 'resolved';
+    updateBadge();
+    renderReports();
+  }
+
+  function setReportFilter(btn, f) {
+    document.querySelectorAll('#report-filters .filter-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    reportFilter = f;
+    renderReports();
+  }
+
+  /* ─────────────────────────────────────────────
+     BADGE & COUNTER
+  ───────────────────────────────────────────── */
+  function updateBadge() {
+    const open  = reports.filter(r => r.status === 'open').length;
+    const badge = document.getElementById('report-badge');
+    const dot   = document.getElementById('notif-dot');
+    const dash  = document.getElementById('dash-open-reports');
+
+    badge.textContent   = open;
+    badge.style.display = open > 0 ? '' : 'none';
+    dot.style.display   = open > 0 ? '' : 'none';
+    if (dash) dash.textContent = open;
+  }
+
+  function requireAdminAccess() {
+    const role = localStorage.getItem('giga_current_user_role') || sessionStorage.getItem('giga_current_user_role');
+    if (role !== 'admin') {
+      window.location.href = 'login.html';
+    }
+  }
+
+  window.addEventListener('storage', (event) => {
+    if (event.key === PRODUCT_CACHE_KEY) {
+      refreshCatalog();
+    }
+  });
+
+  /* ─────────────────────────────────────────────
+     INIT
+  ───────────────────────────────────────────── */
+  requireAdminAccess();
+  initBarChart();
+  refreshCatalog();
+  renderUsers();
+  updateBadge();
+</script>
+</body>
+</html>

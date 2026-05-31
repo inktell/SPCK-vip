@@ -1,34 +1,75 @@
 <!DOCTYPE html>
 <html lang="vi">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Đơn hàng | Giga</title>
-    <link rel="stylesheet" href="style.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Giỏ hàng - Giga</title>
+  <link rel="stylesheet" href="style.css">
+  <style>
+    .cart-container {
+      max-width: 900px;
+      margin: 2rem auto;
+      padding: 1rem;
+      background: #fff;
+      border-radius: 8px;
+    }
+    .cart-item {
+      display: flex;
+      gap: 1rem;
+      border-bottom: 1px solid #ddd;
+      padding: 1rem 0;
+      align-items: center;
+    }
+    .cart-item img {
+      width: 80px;
+      height: 80px;
+      object-fit: cover;
+      border-radius: 4px;
+    }
+    .cart-item-info {
+      flex: 1;
+    }
+    .cart-item-quantity button {
+      margin: 0 0.5rem;
+      padding: 0.2rem 0.5rem;
+    }
+    .total {
+      text-align: right;
+      font-size: 1.2rem;
+      font-weight: bold;
+      margin: 1rem 0;
+    }
+    .checkout-btn {
+      background: #f57224;
+      color: white;
+      border: none;
+      padding: 0.75rem 1.5rem;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+  </style>
 </head>
 <body>
-    <header>
-        <nav>
-            <div class="logo">Giga</div>
-            <ul>
-                <li><a href="index.html">Trang chủ</a></li>
-                <li><a href="sell.html">Bán hàng</a></li>
-                <li><a href="pay.html">Thanh toán</a></li>
-            </ul>
-        </nav>
-    </header>
-    <main class="page-content">
-        <section class="page-panel">
-            <h2>Đơn hàng của bạn</h2>
-            <div class="order-summary" id="order-summary">
-                <p>Không có sản phẩm trong giỏ hàng.</p>
-            </div>
-            <a class="submit-btn" href="pay.html">Tiến hành thanh toán</a>
-        </section>
-    </main>
-    <footer>
-        <p>&copy; Giga</p>
-    </footer>
-    <script src="order.js"></script>
+  <header>
+    <nav>
+      <div class="logo">Giga</div>
+      <ul>
+        <li><a href="index.html">Trang chủ</a></li>
+        <li><a href="index.html#products">Sản phẩm</a></li>
+        <li><a href="order.html">Giỏ hàng</a></li>
+        <li><a href="/AI/public/index.html">Trợ giúp AI</a></li>
+      </ul>
+    </nav>
+  </header>
+  <main>
+    <div class="cart-container">
+      <h1>Giỏ hàng của bạn</h1>
+      <div id="order-summary"></div>
+      <div class="total" id="cart-total"></div>
+      <button id="checkout-btn" class="checkout-btn">Thanh toán</button>
+    </div>
+  </main>
+  <footer><p>&copy; Giga</p></footer>
+  <script src="order.js"></script>
 </body>
 </html>

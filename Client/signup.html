@@ -4,25 +4,172 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Đăng ký | Giga</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="auth.css">
 </head>
 <body>
-    <div class="auth-container">
-        <h1>Đăng ký</h1>
-        <form id="signup-form">
-            <label for="name">Tên hiển thị</label>
-            <input type="text" id="name" required>
-            <label for="email">Email</label>
-            <input type="email" id="email" required>
-            <label for="password">Mật khẩu</label>
-            <input type="password" id="password" required>
-            <button type="submit">Tạo tài khoản</button>
-        </form>
-        <p>Đã có tài khoản? <a href="login.html">Đăng nhập</a></p>
-        <a class="back-link" href="index.html">Trở về trang chủ</a>
+    <div class="auth-page">
+        <div class="auth-container">
+            <!-- Header -->
+            <div class="auth-header">
+                <div class="auth-logo">
+                    <i class="fas fa-user-check"></i>
+                    <h1>Tạo tài khoản</h1>
+                </div>
+                <p class="auth-subtitle">Tham gia Giga Mart ngay hôm nay</p>
+            </div>
+
+            <!-- Info Alert -->
+            <div class="auth-alert alert-info">
+                <i class="fas fa-lightbulb"></i>
+                <div>
+                    <strong>Gợi ý:</strong> Chọn vai trò <strong>Người bán</strong> để quản lý cửa hàng của bạn
+                    <br>Email <strong>admin@giga.com</strong> chỉ dành cho quản trị viên
+                </div>
+            </div>
+
+            <!-- Signup Form -->
+            <form id="signup-form" class="auth-form">
+                <!-- Display Name Field -->
+                <div class="form-group">
+                    <label for="name">
+                        <i class="fas fa-user"></i> Tên hiển thị
+                    </label>
+                    <input 
+                        type="text" 
+                        id="name" 
+                        class="form-input" 
+                        placeholder="Nhập tên của bạn"
+                        required>
+                    <div class="form-error" id="name-error"></div>
+                </div>
+
+                <!-- Email Field -->
+                <div class="form-group">
+                    <label for="email">
+                        <i class="fas fa-envelope"></i> Email
+                    </label>
+                    <input 
+                        type="email" 
+                        id="email" 
+                        class="form-input" 
+                        placeholder="name@example.com"
+                        required>
+                    <div class="form-error" id="email-error"></div>
+                </div>
+
+                <!-- Account Type Selection -->
+                <div class="form-group">
+                    <label>
+                        <i class="fas fa-users"></i> Loại tài khoản
+                    </label>
+                    <div class="role-selector">
+                        <div class="role-option">
+                            <input 
+                                type="radio" 
+                                id="role-customer" 
+                                name="role" 
+                                value="customer" 
+                                checked
+                                required>
+                            <label for="role-customer" class="role-label">
+                                <div class="role-icon">
+                                    <i class="fas fa-shopping-bag"></i>
+                                </div>
+                                <div class="role-text">
+                                    <strong>Khách hàng</strong>
+                                    <p>Mua sắm sản phẩm</p>
+                                </div>
+                            </label>
+                        </div>
+                        <div class="role-option">
+                            <input 
+                                type="radio" 
+                                id="role-seller" 
+                                name="role" 
+                                value="seller"
+                                required>
+                            <label for="role-seller" class="role-label">
+                                <div class="role-icon">
+                                    <i class="fas fa-store"></i>
+                                </div>
+                                <div class="role-text">
+                                    <strong>Người bán</strong>
+                                    <p>Bán hàng trực tuyến</p>
+                                </div>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Password Field -->
+                <div class="form-group">
+                    <label for="password">
+                        <i class="fas fa-lock"></i> Mật khẩu
+                    </label>
+                    <div class="password-wrapper">
+                        <input 
+                            type="password" 
+                            id="password" 
+                            class="form-input" 
+                            placeholder="Tối thiểu 6 ký tự"
+                            required>
+                        <button type="button" class="password-toggle" id="password-toggle">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                    </div>
+                    <div class="password-strength">
+                        <div class="strength-bar">
+                            <div class="strength-fill" id="strength-fill"></div>
+                        </div>
+                        <p class="strength-text" id="strength-text"></p>
+                    </div>
+                    <div class="form-error" id="password-error"></div>
+                </div>
+
+                <!-- Terms & Conditions -->
+                <div class="form-group checkbox">
+                    <input type="checkbox" id="terms" required>
+                    <label for="terms">
+                        Tôi đồng ý với <a href="#" style="color: var(--secondary-color); text-decoration: none;">Điều khoản dịch vụ</a> và <a href="#" style="color: var(--secondary-color); text-decoration: none;">Chính sách bảo mật</a>
+                    </label>
+                    <div class="form-error" id="terms-error"></div>
+                </div>
+
+                <!-- Status Message -->
+                <div id="auth-status" class="auth-status" aria-live="polite"></div>
+
+                <!-- Submit Button -->
+                <button type="submit" class="btn btn-primary btn-large">
+                    <i class="fas fa-user-plus"></i> Tạo tài khoản
+                </button>
+            </form>
+
+            <!-- Divider -->
+            <div class="auth-divider">
+                <span>Đã có tài khoản?</span>
+            </div>
+
+            <!-- Login Link -->
+            <a href="login.html" class="btn btn-secondary btn-large">
+                <i class="fas fa-sign-in-alt"></i> Đăng nhập ngay
+            </a>
+
+            <!-- Back Link -->
+            <a href="index.html" class="auth-back-link">
+                <i class="fas fa-arrow-left"></i> Trở về trang chủ
+            </a>
+        </div>
+
+        <!-- Footer -->
+        <div class="auth-footer">
+            <p>&copy; 2026 Giga Mart. Bảo mật tuyệt đối cho tài khoản của bạn.</p>
+        </div>
     </div>
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth.js"></script>
+
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
     <script src="auth.js"></script>
 </body>
 </html>

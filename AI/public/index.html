@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Gemini Assistant</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <main class="app">
+    <section class="card">
+      <h1>Trợ lý AI Gemini</h1>
+      <p class="subtitle">Nhập câu hỏi của bạn vào ô bên dưới.</p>
+
+      <form id="questionForm" class="search-row">
+        <input
+          id="questionInput"
+          type="text"
+          placeholder="Ví dụ: Giải thích cho mình về vòng lặp for"
+          autocomplete="off"
+        />
+        <button id="askButton" type="submit">Hỏi</button>
+      </form>
+
+      <div class="result">
+        <h2>Kết quả</h2>
+        <div id="answer" class="answer-box">Chưa có câu hỏi nào.</div>
+      </div>
+    </section>
+  </main>
+
+  <script src="./app.js"></script>
+</body>
+</html>
