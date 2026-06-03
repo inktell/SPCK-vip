@@ -5,9 +5,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Giga - Mua sắm nhanh chóng</title>
     <link rel="stylesheet" href="style.css">
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+    <link rel="preconnect" href="https://www.gstatic.com" crossorigin>
+    <link rel="dns-prefetch" href="https://www.gstatic.com">
+    <link rel="preconnect" href="https://placehold.co" crossorigin>
+    <link rel="dns-prefetch" href="https://placehold.co">
+    <script defer src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script defer src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+    <script defer src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
 </head>
 <body>
     <header>
@@ -32,6 +36,10 @@
 
         <section id="products" class="products">
             <h2>Sản phẩm nổi bật</h2>
+            <div class="product-filters">
+                <input id="product-search" class="product-search" type="search" placeholder="Tìm kiếm sản phẩm..." />
+                <div id="category-filter" class="category-filter"></div>
+            </div>
             <div class="product-grid" id="product-grid"></div>
         </section>
 
@@ -59,6 +67,7 @@
         <p>&copy; 2023 Giga. Tất cả quyền được bảo lưu.</p>
     </footer>
 
-    <script src="main.js"></script>
+    <script defer src="main.js"></script>
+    <script defer src="chatbot.js"></script>
 </body>
 </html>

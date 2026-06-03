@@ -18,9 +18,13 @@ const db = firebase.firestore();
 const ADMIN_EMAIL = 'admin@giga.com';
 
 const API_BASE = 'http://localhost:3000';
+const PRODUCT_CACHE_KEY = 'giga_products_cache';
+const PLACEHOLDER_IMAGE = 'https://placehold.co/400x300?text=No+Image';
 
 const shopNowBtn = document.getElementById('shop-now');
 const productGrid = document.getElementById('product-grid');
+const productSearchInput = document.getElementById('product-search');
+const categoryFilter = document.getElementById('category-filter');
 const cartSection = document.getElementById('cart');
 const checkoutSection = document.getElementById('checkout');
 const loginBtn = document.getElementById('login-btn');
@@ -37,7 +41,35 @@ const accountSection = document.getElementById('account');
 let cart = JSON.parse(localStorage.getItem('cart')) || [];
 let currentUser = null;
 let productList = [];
+let productMap = new Map();
+let selectedCategory = 'all';
+let searchQuery = '';
 const detailProductId = new URLSearchParams(window.location.search).get('productId');
+
+function saveProductCache(list) {
+  try {
+    const payload = JSON.stringify(list);
+    localStorage.setItem(PRODUCT_CACHE_KEY, payload);
+  } catch (error) {
+    console.warn('Không lưu cache sản phẩm:', error);
+  }
+}
+
+function loadProductCache() {
+  try {
+    const cache = localStorage.getItem(PRODUCT_CACHE_KEY);
+    return cache ? JSON.parse(cache) : [];
+  } catch {
+    return [];
+  }
+}
+
+function hydrateProductMap(list) {
+  productMap.clear();
+  list.forEach((product) => {
+    productMap.set(String(product.id), product);
+  });
+}
 
 const sampleProducts = [
   {
@@ -218,6 +250,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (detailProductId) {
       showProductDetail(detailProductId);
     }
+    buildCategoryFilter(productList);
   });
   updateCartDisplay();
 });
@@ -365,117 +398,138 @@ function logout() {
 }
 
 async function loadProducts() {
+  if (!productGrid) return;
 
+  const cachedList = loadProductCache();
+  if (cachedList.length > 0) {
+    productList = cachedList;
+    hydrateProductMap(productList);
+    displayProducts(productList);
+    buildCategoryFilter(productList);
+    if ('requestIdleCallback' in window) {
+      requestIdleCallback(fetchRemoteProducts, { timeout: 2000 });
+    } else {
+      setTimeout(fetchRemoteProducts, 1000);
+    }
+    return;
+  }
+
+  await fetchRemoteProducts();
+}
+
+async function fetchRemoteProducts() {
   if (!productGrid) return;
 
   try {
-
-    const response = await fetch(
-      'http://localhost:3000/api/lazada?keyword=laptop'
-    );
-
-    if(!response.ok){
+    const response = await fetch(`${API_BASE}/api/lazada?keyword=laptop`, { cache: 'no-store' });
+    if (!response.ok) {
       throw new Error('Không lấy được dữ liệu');
     }
 
     const data = await response.json();
-
-    console.log(data);
-
-    // SỬA CHỖ NÀY
     const products = data.data?.items || [];
 
-    if(products.length===0){
-      throw new Error("Danh sách sản phẩm rỗng");
+    if (products.length === 0) {
+      throw new Error('Danh sách sản phẩm rỗng');
     }
 
-    productList = products.map(p=>({
-      id:p.item_id,
-      name:p.title,
-      price:Number(
-        p.price ||
-        p.price_info?.sale_price ||
-        0
-      ),
-      image:
-        p.img ||
-        p.image ||
-        'https://placehold.co/400x300',
-      description:
-        p.description ||
-        'Sản phẩm Lazada'
+    productList = products.map((p) => ({
+      id: String(p.item_id || p.id || p.sku || ''),
+      name: String(p.title || p.name || 'Sản phẩm Lazada'),
+      price: Number(p.price || p.price_info?.sale_price || 0),
+      image: getProductImage(p) || PLACEHOLDER_IMAGE,
+      category: p.category || p.cat_name || 'Sản phẩm',
+      description: p.description || p.desc || 'Sản phẩm Lazada',
     }));
 
+    hydrateProductMap(productList);
     saveProductCache(productList);
     displayProducts(productList);
-
+    buildCategoryFilter(productList);
+  } catch (error) {
+    console.warn('Load products error:', error.message || error);
+    if (productList.length === 0) {
+      productList = sampleProducts;
+      hydrateProductMap(productList);
+      displayProducts(sampleProducts, 'Đang hiển thị sản phẩm mẫu');
+      buildCategoryFilter(sampleProducts);
+    }
   }
-
-  catch(error){
-
-    console.log(error);
-
-    productList=sampleProducts;
-
-    displayProducts(
-      sampleProducts,
-      'Đang hiển thị sản phẩm mẫu'
-    );
-
-  }
-
 }
 
 function displayProducts(products, fallbackMessage = '') {
   if (!productGrid) return;
   productGrid.innerHTML = '';
 
+  const fragment = document.createDocumentFragment();
+
   if (fallbackMessage) {
     const msg = document.createElement('p');
     msg.className = 'fallback-msg';
     msg.textContent = fallbackMessage;
-    productGrid.appendChild(msg);
+    fragment.appendChild(msg);
   }
 
   if (!products || products.length === 0) {
-    productGrid.insertAdjacentHTML('beforeend', '<p>Chưa có sản phẩm để hiển thị.</p>');
+    const emptyMsg = document.createElement('p');
+    emptyMsg.textContent = 'Chưa có sản phẩm để hiển thị.';
+    fragment.appendChild(emptyMsg);
+    productGrid.appendChild(fragment);
     return;
   }
 
+  const gridFragment = document.createDocumentFragment();
   for (const product of products) {
     const productCard = document.createElement('div');
     productCard.className = 'product-card';
     productCard.innerHTML = `
-      <img src="${product.image}" alt="${product.name}" loading="lazy" onerror="this.src='https://placehold.co/400x300?text=No+Image'">
+      <img src="${product.image}" alt="${product.name}" loading="lazy" onerror="this.src='${PLACEHOLDER_IMAGE}'">
       <div class="product-info">
         <h3>${product.name}</h3>
         <p class="product-price">${Number(product.price || 0).toLocaleString('vi-VN')} VND</p>
         <div class="card-actions">
           <button class="add-to-cart" data-id="${product.id}">Thêm vào giỏ</button>
-          <a class="detail-link" href="#product-detail" data-id="${product.id}">Xem chi tiết</a>
+          <button class="detail-link" type="button" data-id="${product.id}">Xem chi tiết</button>
         </div>
       </div>
     `;
-    productGrid.appendChild(productCard);
+    gridFragment.appendChild(productCard);
   }
 
-  document.querySelectorAll('.add-to-cart').forEach((btn) => {
-    btn.addEventListener('click', (e) => addToCart(String(e.currentTarget.dataset.id)));
-  });
-
-  document.querySelectorAll('.detail-link').forEach((link) => {
-    link.addEventListener('click', (e) => {
-      e.preventDefault();
-      const productId = String(e.currentTarget.dataset.id);
-      showProductDetail(productId);
-    });
-  });
+  fragment.appendChild(gridFragment);
+  productGrid.appendChild(fragment);
 }
 
+productGrid?.addEventListener('click', (event) => {
+  const addButton = event.target.closest('.add-to-cart');
+  if (addButton) {
+    addToCart(String(addButton.dataset.id));
+    return;
+  }
+
+  const detailButton = event.target.closest('.detail-link');
+  if (detailButton) {
+    const productId = String(detailButton.dataset.id);
+    showProductDetail(productId);
+  }
+});
+
 function getProductById(id) {
-  const cache = [...productList, ...loadProductCache(), ...sampleProducts];
-  return cache.find((p) => String(p.id) === String(id)) || {
-    id,
+  const normalizedId = String(id);
+  if (productMap.has(normalizedId)) {
+    return productMap.get(normalizedId);
+  }
+
+  const cachedList = loadProductCache();
+  if (cachedList.length > 0) {
+    hydrateProductMap(cachedList);
+    if (productMap.has(normalizedId)) {
+      return productMap.get(normalizedId);
+    }
+  }
+
+  return sampleProducts.find((p) => String(p.id) === normalizedId) || {
+    id: normalizedId,
     name: 'Sản phẩm không xác định',
     price: 0,
     image: 'https://placehold.co/300x200?text=No+Image',
@@ -509,6 +563,42 @@ function updateCart() {
   updateCartDisplay();
 }
 
+function getCategoryList(products) {
+  const categories = new Set(['all']);
+  products.forEach((product) => {
+    const category = String(product.category || 'khác').toLowerCase();
+    categories.add(category);
+  });
+  return Array.from(categories);
+}
+
+function formatCategoryName(slug) {
+  if (slug === 'all') return 'Tất cả';
+  return slug
+    .split(/[-_\s]+/)
+    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+    .join(' ');
+}
+
+function buildCategoryFilter(products) {
+  if (!categoryFilter) return;
+  const categories = getCategoryList(products);
+  categoryFilter.innerHTML = categories
+    .map((category) => `<button type="button" class="category-pill ${category === selectedCategory ? 'active' : ''}" data-category="${category}">${formatCategoryName(category)}</button>`)
+    .join('');
+}
+
+function applyFilters() {
+  const filteredProducts = productList.filter((product) => {
+    const matchesSearch = searchQuery
+      ? product.name.toLowerCase().includes(searchQuery) || String(product.category || '').toLowerCase().includes(searchQuery)
+      : true;
+    const matchesCategory = selectedCategory === 'all' ? true : String(product.category || 'khác').toLowerCase() === selectedCategory;
+    return matchesSearch && matchesCategory;
+  });
+  displayProducts(filteredProducts, filteredProducts.length === 0 ? 'Không tìm thấy sản phẩm phù hợp.' : '');
+}
+
 function updateCartDisplay() {
   const cartItems = document.getElementById('cart-items');
   if (!cartItems) return;
@@ -520,6 +610,7 @@ function updateCartDisplay() {
   }
 
   let total = 0;
+  const fragment = document.createDocumentFragment();
 
   cart.forEach((item) => {
     const product = getProductById(item.id);
@@ -529,7 +620,7 @@ function updateCartDisplay() {
     const cartItem = document.createElement('div');
     cartItem.className = 'cart-item';
     cartItem.innerHTML = `
-      <img src="${product.image}" alt="${product.name}" onerror="this.src='https://placehold.co/80x80?text=No+Image'">
+      <img src="${product.image}" alt="${product.name}" loading="lazy" onerror="this.src='https://placehold.co/80x80?text=No+Image'">
       <div class="cart-item-info">
         <h4>${product.name}</h4>
         <p>${price.toLocaleString('vi-VN')} VND</p>
@@ -540,9 +631,10 @@ function updateCartDisplay() {
         <button type="button" onclick="changeQuantity('${item.id}', 1)">+</button>
       </div>
     `;
-    cartItems.appendChild(cartItem);
+    fragment.appendChild(cartItem);
   });
 
+  cartItems.appendChild(fragment);
   const totalEl = document.getElementById('cart-total');
   if (totalEl) {
     totalEl.textContent = `Tổng cộng: ${total.toLocaleString('vi-VN')} VND`;
@@ -625,6 +717,23 @@ function setupEventListeners() {
   if (shopNowBtn) {
     shopNowBtn.addEventListener('click', () => {
       document.getElementById('products')?.scrollIntoView({ behavior: 'smooth' });
+    });
+  }
+  if (productSearchInput) {
+    productSearchInput.addEventListener('input', (event) => {
+      searchQuery = event.target.value.toLowerCase();
+      applyFilters();
+    });
+  }
+  if (categoryFilter) {
+    categoryFilter.addEventListener('click', (event) => {
+      const pill = event.target.closest('.category-pill');
+      if (!pill) return;
+      selectedCategory = pill.dataset.category || 'all';
+      applyFilters();
+      categoryFilter.querySelectorAll('.category-pill').forEach((button) => {
+        button.classList.toggle('active', button.dataset.category === selectedCategory);
+      });
     });
   }
   if (loginBtn) loginBtn.addEventListener('click', login);

@@ -5,6 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Hồ Sơ | Giga</title>
     <link rel="stylesheet" href="style.css">
+    <link rel="preconnect" href="https://www.gstatic.com" crossorigin>
+    <link rel="dns-prefetch" href="https://www.gstatic.com">
+    <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
+    <link rel="dns-prefetch" href="https://cdnjs.cloudflare.com">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" integrity="sha512-pzQf6Nrt0H5W+TD5QnYeQZEs5OblB+JFf0nYgA1z5cNhzShY4Vg0G2e7xdSlGf8TIVkT2lPqchmF0dYDM9XbBA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
     <style>
         :root {
@@ -440,8 +444,10 @@
 
                 <div class="sidebar-actions">
                     <a href="index.html" class="btn btn-secondary"><i class="fas fa-home"></i> Trang chính</a>
-                    <button class="btn btn-secondary" id="edit-btn"><i class="fas fa-edit"></i> Chỉnh sửa</button>
-                    <button class="btn btn-logout" id="logout-btn"><i class="fas fa-sign-out-alt"></i> Đăng xuất</button>
+                    <div id="auth-actions" style="display: none;">
+                        <button class="btn btn-secondary" id="edit-btn"><i class="fas fa-edit"></i> Chỉnh sửa</button>
+                        <button class="btn btn-logout" id="logout-btn"><i class="fas fa-sign-out-alt"></i> Đăng xuất</button>
+                    </div>
                 </div>
             </aside>
 
@@ -563,13 +569,11 @@
         </div>
     </div>
 
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
-    <script src="auth.js"></script>
+    <script defer src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script defer src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+    <script defer src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+    <script defer src="auth.js"></script>
     <script>
-        const auth = firebase.auth();
-        const db = firebase.firestore();
         let currentUser = null;
         let originalData = {};
 
@@ -581,13 +585,21 @@
             auth.onAuthStateChanged(async (user) => {
                 if (user) {
                     currentUser = user;
+                    showAuthActions(true);
                     await loadProfileData();
                 } else {
+                    showAuthActions(false);
                     showAuthRequired();
                 }
             });
 
             setupEventListeners();
+        }
+
+        function showAuthActions(visible) {
+            const authActions = document.getElementById('auth-actions');
+            if (!authActions) return;
+            authActions.style.display = visible ? 'grid' : 'none';
         }
 
         function setupEventListeners() {
@@ -752,6 +764,7 @@
         function showAuthRequired() {
             document.getElementById('auth-required').style.display = 'block';
             document.getElementById('profile-content').style.display = 'none';
+            showAuthActions(false);
         }
 
         function logout() {
@@ -831,5 +844,6 @@
             return new Date(date).toLocaleDateString('vi-VN', options);
         }
     </script>
+    <script defer src="chatbot.js"></script>
 </body>
 </html>
