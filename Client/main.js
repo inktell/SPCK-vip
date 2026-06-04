@@ -31,9 +31,6 @@ const loginBtn = document.getElementById('login-btn');
 const registerBtn = document.getElementById('register-btn');
 const checkoutBtn = document.getElementById('checkout-btn');
 const checkoutForm = document.getElementById('checkout-form');
-const detailSection = document.getElementById('product-detail');
-const detailContainer = document.getElementById('detail-container');
-const closeDetailBtn = document.getElementById('close-detail');
 const userRoleEl = document.getElementById('user-role');
 const accountLink = document.getElementById('account-link');
 const accountSection = document.getElementById('account');
@@ -44,7 +41,6 @@ let productList = [];
 let productMap = new Map();
 let selectedCategory = 'all';
 let searchQuery = '';
-const detailProductId = new URLSearchParams(window.location.search).get('productId');
 
 function saveProductCache(list) {
   try {
@@ -242,17 +238,27 @@ function loadProductCache() {
   }
 }
 
+function logCategoryDistribution(products) {
+  const distribution = products.reduce((summary, product) => {
+    const category = String(product.category || 'khác').toLowerCase();
+    summary[category] = (summary[category] || 0) + 1;
+    return summary;
+  }, {});
+  console.log('Category distribution:', distribution);
+}
+
 document.addEventListener('DOMContentLoaded', () => {
+  console.groupCollapsed('Giga App');
+  console.log('App initialized successfully!');
   initializeAccountNavigation();
   initAuth();
   setupEventListeners();
   loadProducts().then(() => {
-    if (detailProductId) {
-      showProductDetail(detailProductId);
-    }
     buildCategoryFilter(productList);
+    logCategoryDistribution(productList);
   });
   updateCartDisplay();
+  console.groupEnd();
 });
 
 function initializeAccountNavigation() {
@@ -405,7 +411,9 @@ async function loadProducts() {
     productList = cachedList;
     hydrateProductMap(productList);
     displayProducts(productList);
+    console.log('Loaded products from cache:', productList.length, 'items');
     buildCategoryFilter(productList);
+    logCategoryDistribution(productList);
     if ('requestIdleCallback' in window) {
       requestIdleCallback(fetchRemoteProducts, { timeout: 2000 });
     } else {
@@ -420,8 +428,11 @@ async function loadProducts() {
 async function fetchRemoteProducts() {
   if (!productGrid) return;
 
+  const endpoint = `${API_BASE}/api/lazada?keyword=laptop`;
+  console.log('Fetching products from API:', endpoint);
+
   try {
-    const response = await fetch(`${API_BASE}/api/lazada?keyword=laptop`, { cache: 'no-store' });
+    const response = await fetch(endpoint, { cache: 'no-store' });
     if (!response.ok) {
       throw new Error('Không lấy được dữ liệu');
     }
@@ -446,6 +457,8 @@ async function fetchRemoteProducts() {
     saveProductCache(productList);
     displayProducts(productList);
     buildCategoryFilter(productList);
+    logCategoryDistribution(productList);
+    console.log('Remote products loaded successfully:', productList.length, 'items');
   } catch (error) {
     console.warn('Load products error:', error.message || error);
     if (productList.length === 0) {
@@ -453,6 +466,8 @@ async function fetchRemoteProducts() {
       hydrateProductMap(productList);
       displayProducts(sampleProducts, 'Đang hiển thị sản phẩm mẫu');
       buildCategoryFilter(sampleProducts);
+      logCategoryDistribution(sampleProducts);
+      console.warn('Loaded fallback products because API request failed.');
     }
   }
 }
@@ -489,7 +504,7 @@ function displayProducts(products, fallbackMessage = '') {
         <p class="product-price">${Number(product.price || 0).toLocaleString('vi-VN')} VND</p>
         <div class="card-actions">
           <button class="add-to-cart" data-id="${product.id}">Thêm vào giỏ</button>
-          <button class="detail-link" type="button" data-id="${product.id}">Xem chi tiết</button>
+          <a href="product.html?id=${encodeURIComponent(product.id)}" class="detail-link">Xem chi tiết</a>
         </div>
       </div>
     `;
@@ -505,12 +520,6 @@ productGrid?.addEventListener('click', (event) => {
   if (addButton) {
     addToCart(String(addButton.dataset.id));
     return;
-  }
-
-  const detailButton = event.target.closest('.detail-link');
-  if (detailButton) {
-    const productId = String(detailButton.dataset.id);
-    showProductDetail(productId);
   }
 });
 
@@ -652,41 +661,6 @@ function changeQuantity(productId, change) {
   updateCart();
 }
 
-function showProductDetail(productId) {
-  const product = getProductById(productId);
-  if (!product) {
-    alert('Không tìm thấy sản phẩm.');
-    return;
-  }
-  if (detailContainer) {
-    detailContainer.innerHTML = `
-      <div style="display:flex; flex-wrap:wrap; gap:24px; align-items:flex-start;">
-        <img src="${product.image}" alt="${product.name}" style="width:100%; max-width:420px; height:auto; object-fit:cover; border-radius:12px;" onerror="this.src='https://placehold.co/400x300?text=No+Image'">
-        <div style="flex:1; min-width:260px;">
-          <h3 style="font-size:2rem; margin-bottom:0.75rem;">${product.name}</h3>
-          <p style="color: var(--text-secondary); margin:0 0 1rem;">${product.category || 'Danh mục chưa xác định'}</p>
-          <p style="font-size:1.6rem; font-weight:700; color:var(--secondary-color); margin-bottom:1rem;">${Number(product.price || 0).toLocaleString('vi-VN')} VND</p>
-          <p style="margin-bottom:1.5rem; color:var(--text-secondary); line-height:1.7;">${product.description || 'Không có mô tả.'}</p>
-          <div style="display:flex; flex-wrap:wrap; gap:12px;">
-            <button class="add-to-cart" data-id="${product.id}" style="padding:12px 20px; border:none; border-radius:12px; background: var(--secondary-color); color:#fff; cursor:pointer;">Thêm vào giỏ</button>
-            <button id="detail-back" style="padding:12px 20px; border:1px solid var(--secondary-color); border-radius:12px; background:transparent; color:var(--secondary-color); cursor:pointer;">Quay lại sản phẩm</button>
-          </div>
-        </div>
-      </div>
-    `;
-    detailSection?.classList.remove('hidden');
-    detailSection?.scrollIntoView({ behavior: 'smooth' });
-    detailContainer.querySelector('.add-to-cart')?.addEventListener('click', () => addToCart(productId));
-    document.getElementById('detail-back')?.addEventListener('click', hideProductDetail);
-  }
-}
-
-function hideProductDetail() {
-  if (detailSection) {
-    detailSection.classList.add('hidden');
-  }
-}
-
 function showCheckout() {
   if (cartSection) cartSection.classList.add('hidden');
   if (checkoutSection) checkoutSection.classList.remove('hidden');
@@ -740,7 +714,6 @@ function setupEventListeners() {
   if (registerBtn) registerBtn.addEventListener('click', register);
   if (checkoutBtn) checkoutBtn.addEventListener('click', showCheckout);
   if (checkoutForm) checkoutForm.addEventListener('submit', processCheckout);
-  if (closeDetailBtn) closeDetailBtn.addEventListener('click', hideProductDetail);
 }
 
 window.changeQuantity = changeQuantity;

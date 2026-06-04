@@ -58,30 +58,49 @@ function normalizeProduct(raw, fallbackId) {
 
 function getCacheProducts() {
   try {
-    const cache = sessionStorage.getItem('giga_products_cache');
-    return cache ? JSON.parse(cache) : [];
+    const cached = localStorage.getItem('giga_products_cache') || sessionStorage.getItem('giga_products_cache');
+    return cached ? JSON.parse(cached) : [];
   } catch {
     return [];
   }
 }
 
+async function fetchProductFromApi(id) {
+  try {
+    const response = await fetch(`${API_BASE}/api/products/${encodeURIComponent(id)}`);
+    if (!response.ok) return null;
+    const product = await response.json();
+    return normalizeProduct(product, id);
+  } catch {
+    return null;
+  }
+}
+
 async function findProductById(id) {
+  const normalizedId = String(id || '').trim();
+  if (!normalizedId) return null;
+
   const cache = getCacheProducts().map((item, index) => normalizeProduct(item, index + 1));
-  const fromCache = cache.find((item) => String(item.id) === String(id));
+  const fromCache = cache.find((item) => String(item.id) === normalizedId);
   if (fromCache) return fromCache;
 
-  const fromSample = sampleProducts.find((item) => String(item.id) === String(id));
+  const fromSample = sampleProducts.find((item) => String(item.id) === normalizedId);
   if (fromSample) return fromSample;
+
+  if (/^[0-9]+$/.test(normalizedId)) {
+    const apiProduct = await fetchProductFromApi(normalizedId);
+    if (apiProduct) return apiProduct;
+  }
 
   try {
     const response = await fetch(`${API_BASE}/api/lazada?keyword=laptop`);
     if (!response.ok) return null;
     const data = await response.json();
-    const rawProducts = data?.result?.items || data?.items || [];
+    const rawProducts = data?.data?.items || data?.result?.items || data?.items || [];
     const normalized = Array.isArray(rawProducts)
       ? rawProducts.map((item, index) => normalizeProduct(item, index + 1))
       : [];
-    return normalized.find((item) => String(item.id) === String(id)) || null;
+    return normalized.find((item) => String(item.id) === normalizedId) || null;
   } catch {
     return null;
   }
@@ -109,21 +128,20 @@ async function loadProduct() {
 
 function renderProduct(product) {
   detailContainer.innerHTML = `
-    <div class="detail-card" style="display: flex; gap: 30px; padding: 20px; background: var(--surface-color); border-radius: 8px;">
-      <img src="${product.image}" alt="${product.name}" style="width: 400px; height: 400px; object-fit: cover; border-radius: 4px;" onerror="this.src='https://placehold.co/400x400?text=No+Image'">
-      <div class="detail-content" style="flex: 1;">
-        <h1 style="font-size: 1.8rem; margin-bottom: 10px;">${product.name}</h1>
-        <p class="product-category" style="color: var(--text-secondary); margin-bottom: 15px;">Danh mục: ${product.category || 'Đang cập nhật'}</p>
-        <p class="product-price" style="color: var(--secondary-color); font-size: 1.5rem; font-weight: bold; margin-bottom: 20px;">
-          ${Number(product.price || 0).toLocaleString('vi-VN')} VND
-        </p>
-        <div style="margin-bottom: 20px;">
-          <h4 style="margin-bottom: 5px;">Mô tả sản phẩm:</h4>
-          <p class="detail-description" style="line-height: 1.6; color: var(--text-secondary);">${product.description || ''}</p>
+    <div class="detail-card" style="display: flex; gap: 30px; padding: 20px; background: var(--surface-color); border-radius: 8px; flex-wrap: wrap;">
+      <img src="${product.image}" alt="${product.name}" style="width:100%; max-width:420px; height:auto; object-fit: cover; border-radius: 12px;" onerror="this.src='https://placehold.co/400x400?text=No+Image'">
+      <div class="detail-content" style="flex: 1; min-width: 280px;">
+        <h1 style="font-size: 2rem; margin-bottom: 12px;">${product.name}</h1>
+        <p style="color: var(--text-secondary); margin-bottom: 16px;">Danh mục: ${product.category || 'Đang cập nhật'}</p>
+        <p style="font-size: 1.8rem; font-weight: 700; color: var(--secondary-color); margin-bottom: 20px;">${Number(product.price || 0).toLocaleString('vi-VN')} VND</p>
+        <div style="margin-bottom: 22px;">
+          <h4 style="margin-bottom: 8px;">Mô tả sản phẩm:</h4>
+          <p style="line-height: 1.75; color: var(--text-secondary);">${product.description || 'Không có mô tả.'}</p>
         </div>
-        <div class="detail-actions" style="display: flex; gap: 15px;">
-          <button id="add-to-cart-detail" style="padding: 10px 20px; background: var(--secondary-color); color: #fff; border: none; border-radius: 4px; cursor: pointer; font-weight: bold;">Thêm vào giỏ</button>
-          <a class="detail-link" href="order.html" style="padding: 10px 20px; background: var(--secondary-color); color: #fff; text-decoration: none; border-radius: 4px; font-weight: bold;">Xem giỏ hàng</a>
+        <div style="display: flex; flex-wrap: wrap; gap: 15px; align-items: center;">
+          <button id="add-to-cart-detail" style="padding: 12px 22px; background: var(--secondary-color); color: #fff; border: none; border-radius: 14px; cursor: pointer; font-weight: 700;">Thêm vào giỏ</button>
+          <a class="detail-link" href="order.html" style="padding: 12px 22px; background: var(--primary-color); color: #1a1a1a; text-decoration: none; border-radius: 14px; font-weight: 700;">Xem giỏ hàng</a>
+          <a class="detail-link" href="index.html#products" style="padding: 12px 22px; background: transparent; border: 1px solid var(--border-color); color: var(--text-color); text-decoration: none; border-radius: 14px;">Quay lại sản phẩm</a>
         </div>
       </div>
     </div>

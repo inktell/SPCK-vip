@@ -16,6 +16,14 @@
     box-sizing: border-box;
 }
 
+/* Prevent mobile browsers from auto-zooming on input focus and normalize base font */
+html {
+    -webkit-text-size-adjust: 100%;
+    -ms-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+    font-size: 16px;
+}
+
 body {
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     background-color: var(--background-color);
@@ -346,7 +354,7 @@ main {
     .page-shell {
         max-width: 1200px;
         margin: 0 auto;
-        padding: 5rem 2rem 3rem;
+        padding: clamp(1.5rem, 3vw, 5rem) 2rem 3rem;
     }
 
     .page-header {
@@ -526,7 +534,8 @@ main {
 }
 
 #checkout-btn:hover {
-    background-color: #00b8e6;
+    background-color: var(--primary-color);
+    filter: brightness(1.1);
 }
 
 #checkout-form {
@@ -571,7 +580,8 @@ main {
 }
 
 .submit-btn:hover {
-    background-color: #00b8e6;
+    background-color: var(--primary-color);
+    filter: brightness(1.1);
 }
 
 #auth-section {
@@ -590,7 +600,8 @@ main {
 }
 
 #login-btn:hover, #register-btn:hover {
-    background-color: #00b8e6;
+    background-color: var(--primary-color);
+    filter: brightness(1.1);
 }
 
 footer {
@@ -1142,9 +1153,10 @@ footer {
 .detail-actions button,
 .card-actions button {
   border: none;
-    background: linear-gradient(135deg, var(--primary-color), #b99e77);
-  color: #0a0a0a;
+  background: linear-gradient(135deg, var(--primary-color), #b99e77);
+  color: var(--text-color);
   cursor: pointer;
+  font-weight: 600;
 }
 
 .detail-actions a,

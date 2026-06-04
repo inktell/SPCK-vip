@@ -1,6 +1,25 @@
+/* ==================== CSS Variables ==================== */
+:root {
+    --primary-color: #cdbfa3; /* warm cream accent */
+    --secondary-color: #f57224; /* CTA accent */
+    --background-color: #ffffff;
+    --surface-color: #fff9f3; /* soft cream surface */
+    --text-color: #1a1a1a;
+    --text-secondary: #6b6b6b;
+    --border-color: #e6ddd2;
+}
+
 /* ==================== Global Styles ==================== */
 * {
     box-sizing: border-box;
+}
+
+/* Prevent mobile browsers from auto-zooming on input focus */
+html {
+    -webkit-text-size-adjust: 100%;
+    -ms-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+    font-size: 16px; /* base font-size to avoid auto-zoom on mobile inputs */
 }
 
 html, body {
@@ -11,9 +30,14 @@ html, body {
 
 body {
     min-height: 100vh;
-    background: var(--background-color);
+    background: linear-gradient(135deg, var(--background-color) 0%, rgba(205,191,163,0.03) 100%);
     color: var(--text-color);
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+/* Ensure interactive elements use readable font-size on small screens */
+input, button, select, textarea {
+    font-size: 16px;
 }
 
 /* ==================== Auth Page Layout ==================== */
@@ -24,6 +48,18 @@ body {
     align-items: center;
     justify-content: center;
     padding: 2rem 1rem;
+    position: relative;
+}
+
+.auth-page::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    right: -10%;
+    width: 500px;
+    height: 500px;
+    background: radial-gradient(circle, rgba(205,191,163,0.1) 0%, transparent 70%);
+    pointer-events: none;
 }
 
 .auth-container {
@@ -31,9 +67,10 @@ body {
     padding: 2.5rem;
     border-radius: 24px;
     background: var(--surface-color);
-    box-shadow: 0 18px 40px rgba(32,24,16,0.06);
-    backdrop-filter: none;
-    border: 1px solid var(--border-color);
+    box-shadow: 0 20px 60px rgba(32,24,16,0.12), 0 0 1px rgba(32,24,16,0.1);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(230, 221, 210, 0.8);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
 }
 
 /* ==================== Header Styles ==================== */
@@ -60,6 +97,7 @@ body {
     color: var(--primary-color);
     font-size: 1.75rem;
     font-weight: 700;
+    letter-spacing: -0.5px;
 }
 
 .auth-subtitle {
@@ -73,12 +111,13 @@ body {
 .auth-alert {
     display: flex;
     gap: 1rem;
-    padding: 1rem;
+    padding: 1.1rem 1.2rem;
     border-radius: 14px;
-    border: 1px solid transparent;
+    border: 1.5px solid transparent;
     margin-bottom: 2rem;
     font-size: 0.9rem;
     line-height: 1.5;
+    animation: slideDown 0.4s ease;
 }
 
 .auth-alert i {
@@ -88,8 +127,8 @@ body {
 }
 
 .alert-info {
-    background: rgba(205,191,163,0.12);
-    border-color: rgba(205,191,163,0.24);
+    background: linear-gradient(135deg, rgba(205,191,163,0.1) 0%, rgba(205,191,163,0.08) 100%);
+    border-color: rgba(205,191,163,0.3);
     color: var(--primary-color);
 }
 
@@ -125,17 +164,17 @@ body {
     padding: 0.95rem 1rem;
     border-radius: 12px;
     background: #fff;
-    border: 1px solid var(--border-color);
+    border: 1.5px solid var(--border-color);
     color: var(--text-color);
     outline: none;
     font-size: 0.95rem;
-    transition: all 0.2s ease;
+    transition: all 0.3s ease;
 }
 
 .form-input:focus {
     border-color: var(--primary-color);
-    background: rgba(205,191,163,0.03);
-    box-shadow: 0 0 0 4px rgba(205,191,163,0.08);
+    background: rgba(205,191,163,0.05);
+    box-shadow: 0 0 0 4px rgba(205,191,163,0.1);
 }
 
 .form-input::placeholder {
@@ -143,14 +182,17 @@ body {
 }
 
 .form-input:invalid:not(:placeholder-shown) {
-    border-color: #ff5a5a;
+    border-color: #e74c3c;
+    background: rgba(231, 76, 60, 0.03);
 }
 
 .form-error {
     display: none;
-    color: #ff5a5a;
+    color: #e74c3c;
     font-size: 0.8rem;
-    margin-top: -0.2rem;
+    margin-top: -0.15rem;
+    font-weight: 500;
+    animation: slideDown 0.2s ease;
 }
 
 .form-error.show {
@@ -168,17 +210,21 @@ body {
     right: 1rem;
     top: 50%;
     transform: translateY(-50%);
-    background: none;
+    background: transparent;
     border: none;
-    color: #a0a8b8;
+    color: var(--text-secondary);
     cursor: pointer;
     font-size: 1rem;
     padding: 0.5rem;
-    transition: color 0.2s ease;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .password-toggle:hover {
     color: var(--primary-color);
+    transform: translateY(-50%) scale(1.15);
 }
 
 /* ==================== Password Strength Indicator ==================== */
@@ -189,9 +235,9 @@ body {
 }
 
 .strength-bar {
-    height: 4px;
-    background: #2c3240;
-    border-radius: 2px;
+    height: 5px;
+    background: #e6ddd2;
+    border-radius: 3px;
     overflow: hidden;
 }
 
@@ -199,8 +245,9 @@ body {
     height: 100%;
     width: 0%;
     background: #ff5a5a;
-    transition: width 0.3s ease, background 0.3s ease;
-    border-radius: 2px;
+    transition: width 0.4s ease, background 0.4s ease;
+    border-radius: 3px;
+    box-shadow: 0 0 6px rgba(255, 90, 90, 0.3);
 }
 
 .strength-fill.weak {
@@ -239,19 +286,21 @@ body {
 /* ==================== Checkbox Styles ==================== */
 .form-group.checkbox {
     flex-direction: row;
-    align-items: center;
+    align-items: flex-start;
     gap: 0.75rem;
 }
 
 .form-group.checkbox input {
     width: auto;
     cursor: pointer;
+    margin-top: 0.2rem;
 }
 
 .form-group.checkbox label {
     margin: 0;
     cursor: pointer;
     gap: 0;
+    line-height: 1.5;
 }
 
 input[type="checkbox"] {
@@ -284,20 +333,22 @@ input[type="checkbox"] {
     padding: 1.25rem 1rem;
     border-radius: 14px;
     border: 2px solid var(--border-color);
-    background: var(--surface-color);
+    background: #fff;
     cursor: pointer;
     transition: all 0.3s ease;
 }
 
 .role-option input:checked + .role-label {
     border-color: var(--primary-color);
-    background: rgba(205,191,163,0.06);
-    box-shadow: 0 0 0 4px rgba(205,191,163,0.08);
+    background: rgba(205,191,163,0.08);
+    box-shadow: 0 0 0 4px rgba(205,191,163,0.12), inset 0 0 0 1px rgba(205,191,163,0.2);
+    transform: scale(1.02);
 }
 
 .role-label:hover {
     border-color: var(--primary-color);
-    background: rgba(205,191,163,0.04);
+    background: rgba(205,191,163,0.05);
+    transform: translateY(-2px);
 }
 
 .role-icon {
@@ -339,14 +390,33 @@ input[type="checkbox"] {
 }
 
 .btn-primary {
-    background: linear-gradient(135deg, var(--primary-color), #b99e77);
-    color: #0a0a0a;
-    box-shadow: 0 6px 18px rgba(32,24,16,0.06);
+    background: linear-gradient(135deg, var(--primary-color) 0%, #c0a88a 100%);
+    color: var(--text-color);
+    box-shadow: 0 8px 20px rgba(205,191,163,0.25);
+    font-weight: 700;
+    position: relative;
+    overflow: hidden;
+}
+
+.btn-primary::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: rgba(255,255,255,0.2);
+    transition: left 0.3s ease;
+}
+
+.btn-primary:hover::before {
+    left: 100%;
 }
 
 .btn-primary:hover {
-    filter: brightness(1.02);
-    box-shadow: 0 8px 24px rgba(32,24,16,0.08);
+    transform: translateY(-2px);
+    box-shadow: 0 12px 28px rgba(205,191,163,0.35);
+    filter: brightness(1.05);
 }
 
 .btn-primary:active {
@@ -359,14 +429,18 @@ input[type="checkbox"] {
 }
 
 .btn-secondary {
-    background: transparent;
+    background: #fff;
     color: var(--text-color);
-    border: 1px solid var(--border-color);
+    border: 2px solid var(--border-color);
+    transition: all 0.3s ease;
 }
 
 .btn-secondary:hover {
-    background: rgba(0,0,0,0.02);
+    background: var(--primary-color);
     border-color: var(--primary-color);
+    color: var(--text-color);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(205,191,163,0.2);
 }
 
 .btn-large {
@@ -422,17 +496,18 @@ input[type="checkbox"] {
     display: flex;
     align-items: center;
     gap: 1rem;
-    margin: 1.5rem 0;
+    margin: 1.75rem 0;
     color: var(--text-secondary);
     font-size: 0.9rem;
+    font-weight: 500;
 }
 
 .auth-divider::before,
 .auth-divider::after {
     content: '';
     flex: 1;
-    height: 1px;
-    background: var(--border-color);
+    height: 1.5px;
+    background: linear-gradient(90deg, var(--border-color) 0%, transparent 100%);
 }
 
 /* ==================== Back Link ==================== */
@@ -445,23 +520,27 @@ input[type="checkbox"] {
     color: var(--text-secondary);
     text-decoration: none;
     font-size: 0.9rem;
-    transition: color 0.2s ease;
+    transition: all 0.3s ease;
+    padding: 0.5rem 0;
 }
 
 .auth-back-link:hover {
     color: var(--primary-color);
+    transform: translateX(-3px);
 }
 
 /* ==================== Footer ==================== */
 .auth-footer {
-    margin-top: 2rem;
+    margin-top: 2.5rem;
     text-align: center;
     color: var(--text-secondary);
     font-size: 0.85rem;
+    font-weight: 500;
 }
 
 .auth-footer p {
     margin: 0;
+    line-height: 1.6;
 }
 
 /* ==================== Responsive Design ==================== */
