@@ -1,719 +1,696 @@
-// Giga - Fast Shopping App
+// Giga E-Commerce App Logic (main.js)
 
-const firebaseConfig = {
-  apiKey: "AIzaSyBl1v4j0DMx-ce4rkGZpmijzyUYLLRm9NI",
-  authDomain: "bai-3-2f0fc.firebaseapp.com",
-  projectId: "bai-3-2f0fc",
-  storageBucket: "bai-3-2f0fc.firebasestorage.app",
-  messagingSenderId: "300263576892",
-  appId: "1:300263576892:web:55c18b93e96985c55b3a39",
-  measurementId: "G-38NJ0S7XEP"
-};
-
-if (!firebase.apps.length) {
-  firebase.initializeApp(firebaseConfig);
-}
-const auth = firebase.auth();
-const db = firebase.firestore();
-const ADMIN_EMAIL = 'admin@giga.com';
-
-const API_BASE = 'http://localhost:3000';
-const PRODUCT_CACHE_KEY = 'giga_products_cache';
-const PLACEHOLDER_IMAGE = 'https://placehold.co/400x300?text=No+Image';
-
-const shopNowBtn = document.getElementById('shop-now');
-const productGrid = document.getElementById('product-grid');
-const productSearchInput = document.getElementById('product-search');
-const categoryFilter = document.getElementById('category-filter');
-const cartSection = document.getElementById('cart');
-const checkoutSection = document.getElementById('checkout');
-const loginBtn = document.getElementById('login-btn');
-const registerBtn = document.getElementById('register-btn');
-const checkoutBtn = document.getElementById('checkout-btn');
-const checkoutForm = document.getElementById('checkout-form');
-const userRoleEl = document.getElementById('user-role');
-const accountLink = document.getElementById('account-link');
-const accountSection = document.getElementById('account');
-
-let cart = JSON.parse(localStorage.getItem('cart')) || [];
-let currentUser = null;
-let productList = [];
-let productMap = new Map();
-let selectedCategory = 'all';
-let searchQuery = '';
-
-function saveProductCache(list) {
-  try {
-    const payload = JSON.stringify(list);
-    localStorage.setItem(PRODUCT_CACHE_KEY, payload);
-  } catch (error) {
-    console.warn('Không lưu cache sản phẩm:', error);
-  }
-}
-
-function loadProductCache() {
-  try {
-    const cache = localStorage.getItem(PRODUCT_CACHE_KEY);
-    return cache ? JSON.parse(cache) : [];
-  } catch {
-    return [];
-  }
-}
-
-function hydrateProductMap(list) {
-  productMap.clear();
-  list.forEach((product) => {
-    productMap.set(String(product.id), product);
-  });
-}
-
-const sampleProducts = [
-  {
-    id: 'sample-1',
-    name: 'iPhone 15 Case',
-    price: 299000,
-    image: 'https://placehold.co/400x300?text=iPhone+15+Case',
-    category: 'electronics',
-    description: 'Bao da iPhone 15 bền đẹp, chống va đập và bảo vệ toàn diện.'
-  },
-  {
-    id: 'sample-2',
-    name: 'Wireless Headset',
-    price: 890000,
-    image: 'https://placehold.co/400x300?text=Wireless+Headset',
-    category: 'electronics',
-    description: 'Tai nghe không dây chất lượng cao, âm thanh rõ nét và pin lâu.'
-  },
-  {
-    id: 'sample-3',
-    name: 'Running Shoes',
-    price: 599000,
-    image: 'https://placehold.co/400x300?text=Running+Shoes',
-    category: 'fashion',
-    description: 'Giày chạy nhẹ, thoáng khí và phù hợp cho vận động hàng ngày.'
-  },
-  {
-    id: 'sample-4',
-    name: 'Classic Backpack',
-    price: 499000,
-    image: 'https://placehold.co/400x300?text=Classic+Backpack',
-    category: 'fashion',
-    description: 'Ba lô cổ điển nhiều ngăn, tiện dụng cho đi làm và du lịch.'
-  },
-  {
-    id: 'sample-5',
-    name: 'Vitamin C Serum',
-    price: 249000,
-    image: 'https://placehold.co/400x300?text=Vitamin+C+Serum',
-    category: 'beauty',
-    description: 'Serum vitamin C dưỡng sáng, hỗ trợ cải thiện làn da toàn diện.'
-  },
-  {
-    id: 'sample-6',
-    name: 'Smartwatch',
-    price: 1290000,
-    image: 'https://placehold.co/400x300?text=Smartwatch',
-    category: 'electronics',
-    description: 'Đồng hồ thông minh tích hợp theo dõi sức khỏe và thông báo thông minh.'
-  },
-  {
-    id: 'sample-7',
-    name: 'Desk Lamp',
-    price: 399000,
-    image: 'https://placehold.co/400x300?text=Desk+Lamp',
-    category: 'home',
-    description: 'Đèn bàn LED tiết kiệm điện với ánh sáng dễ chịu và điều chỉnh linh hoạt.'
-  },
-  {
-    id: 'sample-8',
-    name: 'Storage Organizer',
-    price: 355000,
-    image: 'https://placehold.co/400x300?text=Storage+Organizer',
-    category: 'home',
-    description: 'Bộ tổ chức lưu trữ đa năng, giúp không gian ngăn nắp và gọn gàng.'
-  },
-  {
-    id: 'sample-9',
-    name: 'USB-C Charger',
-    price: 199000,
-    image: 'https://placehold.co/400x300?text=USB-C+Charger',
-    category: 'electronics',
-    description: 'Cáp sạc USB-C nhanh, tương thích với nhiều thiết bị hiện đại.'
-  },
-  {
-    id: 'sample-10',
-    name: 'Men’s Hoodie',
-    price: 449000,
-    image: 'https://placehold.co/400x300?text=Men%E2%80%99s+Hoodie',
-    category: 'fashion',
-    description: 'Áo hoodie nam thoải mái, chất liệu mềm và phù hợp mặc mọi ngày.'
-  },
-  {
-    id: 'sample-11',
-    name: 'Face Mask Pack',
-    price: 155000,
-    image: 'https://placehold.co/400x300?text=Face+Mask+Pack',
-    category: 'beauty',
-    description: 'Bộ mặt nạ dưỡng da tiện lợi, hỗ trợ làm sạch và nuôi dưỡng.'
-  },
-  {
-    id: 'sample-12',
-    name: 'Travel Mug',
-    price: 189000,
-    image: 'https://placehold.co/400x300?text=Travel+Mug',
-    category: 'home',
-    description: 'Ly giữ nhiệt tiện dụng cho việc di chuyển và thưởng thức đồ uống.'
-  }
+// 1. Dữ liệu sản phẩm mẫu (Mock Product Database)
+const PRODUCTS = [
+    {
+        id: "chair-lounge",
+        name: "Ghế Bành Lounge Bắc Âu",
+        category: "chair",
+        price: 4500000,
+        oldPrice: 5200000,
+        image: "images/chair.png",
+        rating: 4.8,
+        reviewsCount: 12,
+        description: "Ghế thư giãn với chất liệu gỗ tần bì cao cấp và đệm bọc vải lanh tự nhiên nhập khẩu. Thiết kế công thái học mang lại tư thế ngồi dễ chịu tối đa cho phòng khách hoặc phòng đọc sách của bạn.",
+        options: {
+            colors: ["Kem Cát", "Xám Nhạt", "Nâu Đất"],
+            sizes: ["Tiêu Chuẩn"]
+        },
+        reviews: [
+            { user: "Trần Minh H.", rating: 5, date: "02/06/2026", title: "Rất ưng ý", content: "Ghế ngồi êm, độ nghiêng vừa phải. Gỗ gia công rất mịn và chắc chắn. Đóng gói cẩn thận." },
+            { user: "Nguyễn Hương G.", rating: 4, date: "28/05/2026", title: "Màu kem rất sang", content: "Đúng chuẩn màu kem Bắc Âu tôi tìm kiếm. Giao hàng hỏa tốc trong 2 giờ tại Sài Gòn." }
+        ]
+    },
+    {
+        id: "sofa-cream",
+        name: "Sofa Vải Nỉ Cream Luxury",
+        category: "sofa",
+        price: 15800000,
+        oldPrice: 18500000,
+        image: "images/sofa.png",
+        rating: 4.9,
+        reviewsCount: 8,
+        description: "Sofa băng dài thiết kế bo cong mềm mại (curved style) thời thượng. Đệm mút cao cấp chống xẹp lún và hệ lò xo túi đàn hồi cao, kết hợp khung xương sồi tự nhiên chống mối mọt.",
+        options: {
+            colors: ["Trắng Sữa", "Beige Ấm"],
+            sizes: ["Băng Đôi (1.8m)", "Băng Ba (2.2m)"]
+        },
+        reviews: [
+            { user: "Lê Hoàng N.", rating: 5, date: "05/06/2026", title: "Sản phẩm đẳng cấp", content: "Đệm sofa ngồi rất thích, không bị lún sâu. Thiết kế bo góc nhìn phòng khách sang hẳn lên." }
+        ]
+    },
+    {
+        id: "lamp-brass",
+        name: "Đèn Bàn Brass Dome Tối Giản",
+        category: "lighting",
+        price: 1850000,
+        oldPrice: 2400000,
+        image: "images/lamp.png",
+        rating: 4.7,
+        reviewsCount: 24,
+        description: "Đèn chụp đồng thau nguyên bản cao cấp. Bề mặt kim loại được chải xước nghệ thuật, tạo ra chao đèn dạng vòm tối giản khuếch tán ánh sáng vàng ấm áp dịu nhẹ cho góc làm việc.",
+        options: {
+            colors: ["Đồng Xước Vintage", "Vàng Gold Bóng"],
+            sizes: ["M (Cao 35cm)", "L (Cao 48cm)"]
+        },
+        reviews: [
+            { user: "Phạm Quốc B.", rating: 5, date: "01/06/2026", title: "Đẹp xuất sắc", content: "Đèn cầm nặng tay, chất liệu đồng thau thật xịn sò. Đặt trên tủ đầu giường nhìn cực sang trọng." }
+        ]
+    },
+    {
+        id: "table-oak",
+        name: "Bàn Cafe Oak Minimalist",
+        category: "table",
+        price: 3200000,
+        oldPrice: 3900000,
+        image: "images/table.png",
+        rating: 4.8,
+        reviewsCount: 15,
+        description: "Bàn trà tròn tinh tế mặt gỗ sồi tự nhiên vân gỗ sắc nét. Mặt bàn phủ lớp bảo vệ bóng mờ chống thấm nước và trầy xước, chân gỗ tự nhiên tiện tròn thuôn gọn phong cách Retro.",
+        options: {
+            colors: ["Sồi Tự Nhiên", "Sồi Màu Óc Chó (Walnut)"],
+            sizes: ["Đường kính 60cm", "Đường kính 80cm"]
+        },
+        reviews: [
+            { user: "Vũ Khánh L.", rating: 4, date: "03/06/2026", title: "Nhỏ gọn, cứng cáp", content: "Bàn lắp ráp dễ dàng, khớp nối khít. Dễ lau chùi khi đổ nước trà ra." }
+        ]
+    }
 ];
 
-function toNumberPrice(value) {
-  if (typeof value === 'number') return value;
-  if (typeof value === 'string') {
-    const n = Number(value.replace(/[^\d.-]/g, ''));
-    return Number.isFinite(n) ? n : 0;
-  }
-  if (value && typeof value === 'object') {
-    const candidates = [
-      value.current_price,
-      value.price,
-      value.min_price,
-      value.sale_price,
-      value.final_price,
-    ];
-    for (const candidate of candidates) {
-      const parsed = toNumberPrice(candidate);
-      if (parsed) return parsed;
+// 2. Trạng thái ứng dụng (Application State)
+let currentCategory = "all";
+let searchQuery = "";
+let cart = [];
+let orders = [];
+let isLoggedIn = false;
+let userProfile = {
+    name: "Khách hàng Danh dự",
+    email: "vip-customer@giga.com",
+    address: "Bạch Đằng, Quận Bình Thạnh, TP. Hồ Chí Minh"
+};
+
+// 3. Khởi chạy khi tài liệu sẵn sàng (Initialization)
+document.addEventListener("DOMContentLoaded", () => {
+    // Render sản phẩm lúc đầu
+    renderProducts();
+    updateCartBadge();
+    
+    // Gắn sự kiện lắng nghe tìm kiếm
+    const searchInput = document.getElementById("search-input");
+    if (searchInput) {
+        searchInput.addEventListener("input", (e) => {
+            searchQuery = e.target.value.toLowerCase();
+            renderProducts();
+        });
     }
-  }
-  return 0;
-}
 
-function getProductImage(product) {
-  const fallback = 'https://placehold.co/400x300?text=No+Image';
-  if (!product) return fallback;
-  const candidates = [
-    product.image,
-    product.main_image,
-    product.thumbnail,
-    product.image_url,
-    product.pic,
-  ];
-  for (const img of candidates) {
-    if (typeof img === 'string' && img.trim()) return img;
-  }
-  const arrays = [product.images, product.item_images, product.image_urls];
-  for (const arr of arrays) {
-    if (Array.isArray(arr) && arr.length) {
-      const first = arr[0];
-      if (typeof first === 'string' && first.trim()) return first;
-      if (first && typeof first.url === 'string' && first.url.trim()) return first.url;
+    // Đọc giỏ hàng và đơn hàng từ LocalStorage nếu có
+    const savedCart = localStorage.getItem("giga_cart");
+    if (savedCart) {
+        cart = JSON.parse(savedCart);
+        updateCartBadge();
     }
-  }
-  return fallback;
-}
+    
+    const savedOrders = localStorage.getItem("giga_orders");
+    if (savedOrders) {
+        orders = JSON.parse(savedOrders);
+    }
+    
+    const savedProfile = localStorage.getItem("giga_profile");
+    if (savedProfile) {
+        userProfile = JSON.parse(savedProfile);
+        document.getElementById("profile-name").value = userProfile.name;
+        document.getElementById("profile-email").value = userProfile.email;
+        document.getElementById("profile-address").value = userProfile.address;
+    }
 
-function normalizeProduct(raw, fallbackId) {
-  return {
-    id: String(raw?.item_id ?? raw?.id ?? raw?.sku ?? fallbackId),
-    name: String(raw?.title ?? raw?.name ?? 'Sản phẩm Lazada'),
-    price: toNumberPrice(raw?.price),
-    image: getProductImage(raw),
-    category: raw?.category || raw?.cat_name || 'Sản phẩm',
-    description: raw?.description || raw?.desc || 'Sản phẩm lấy từ Lazada API.',
-  };
-}
-
-function saveProductCache(list) {
-  const payload = JSON.stringify(list);
-  sessionStorage.setItem('giga_products_cache', payload);
-  localStorage.setItem('giga_products_cache', payload);
-}
-
-function loadProductCache() {
-  try {
-    const cache = localStorage.getItem('giga_products_cache') || sessionStorage.getItem('giga_products_cache');
-    return cache ? JSON.parse(cache) : [];
-  } catch {
-    return [];
-  }
-}
-
-function logCategoryDistribution(products) {
-  const distribution = products.reduce((summary, product) => {
-    const category = String(product.category || 'khác').toLowerCase();
-    summary[category] = (summary[category] || 0) + 1;
-    return summary;
-  }, {});
-  console.log('Category distribution:', distribution);
-}
-
-document.addEventListener('DOMContentLoaded', () => {
-  console.groupCollapsed('Giga App');
-  console.log('App initialized successfully!');
-  initializeAccountNavigation();
-  initAuth();
-  setupEventListeners();
-  loadProducts().then(() => {
-    buildCategoryFilter(productList);
-    logCategoryDistribution(productList);
-  });
-  updateCartDisplay();
-  console.groupEnd();
+    const savedAuth = localStorage.getItem("giga_auth");
+    if (savedAuth === "true") {
+        isLoggedIn = true;
+    }
+    toggleAuthUI();
 });
 
-function initializeAccountNavigation() {
-  const storedEmail = localStorage.getItem('giga_current_user_email') || sessionStorage.getItem('giga_current_user_email');
-  const storedRole = localStorage.getItem('giga_current_user_role') || sessionStorage.getItem('giga_current_user_role');
-  syncAccountLinkState(storedRole, Boolean(storedEmail));
-  accountLink?.addEventListener('click', handleAccountLinkClick);
-}
+// 4. Bộ định tuyến hiển thị View (Local Routing)
+function showSection(sectionId) {
+    const sections = ["home", "shop", "cart", "checkout", "account"];
+    sections.forEach(id => {
+        const sectionEl = document.getElementById(id);
+        if (sectionEl) {
+            if (id === sectionId) {
+                sectionEl.classList.remove("hidden");
+            } else {
+                sectionEl.classList.add("hidden");
+            }
+        }
+    });
 
-function syncAccountLinkState(role, hasSession = false) {
-  if (!accountLink) return;
-  const normalizedRole = String(role || 'customer').toLowerCase();
-  if (!hasSession) {
-    accountLink.href = 'login.html';
-    accountLink.textContent = 'Đăng nhập';
-    return;
-  }
-  // All authenticated users go to profile page
-  accountLink.href = 'profile.html';
-  accountLink.textContent = 'Thông tin tài khoản';
-}
+    // Cập nhật trạng thái active trên thanh điều hướng
+    const links = document.querySelectorAll("#nav-links a");
+    links.forEach(link => {
+        link.classList.remove("active");
+        const onclickAttr = link.getAttribute("onclick");
+        if (onclickAttr && onclickAttr.includes(`'${sectionId}'`)) {
+            link.classList.add("active");
+        }
+    });
 
-function handleAccountLinkClick(event) {
-  // Allow default behavior - just navigate to profile.html
-  const storedRole = localStorage.getItem('giga_current_user_role') || sessionStorage.getItem('giga_current_user_role');
-  if (!storedRole) {
-    // Not logged in, let it navigate to login.html
-    return;
-  }
-}
+    // Cuộn lên đầu trang
+    window.scrollTo({ top: 0, behavior: "smooth" });
 
-function initAuth() {
-  auth.onAuthStateChanged(async (user) => {
-    currentUser = user;
-    await updateAuthUI();
-  });
-}
-
-async function ensureUserRole(user) {
-  if (!user || !user.uid) return 'customer';
-  const userRef = db.collection('users').doc(user.uid);
-  const doc = await userRef.get();
-  if (doc.exists) {
-    const savedRole = doc.data()?.role;
-    if (savedRole) {
-      if (String(user.email).toLowerCase() === ADMIN_EMAIL) return 'admin';
-      return savedRole;
+    // Cập nhật giao diện riêng biệt cho từng trang khi mở
+    if (sectionId === "shop") {
+        renderProducts();
+        // Ẩn panel chi tiết khi về lại shop
+        document.getElementById("detail-panel-container").classList.add("hidden");
+    } else if (sectionId === "cart") {
+        renderCart();
+    } else if (sectionId === "checkout") {
+        updateCheckoutSummary();
+    } else if (sectionId === "account") {
+        renderOrderHistory();
     }
-  }
-
-  const newRole = String(user.email).toLowerCase() === ADMIN_EMAIL ? 'admin' : 'customer';
-  await userRef.set({
-    email: user.email,
-    displayName: user.displayName || '',
-    role: newRole,
-    createdAt: firebase.firestore.FieldValue.serverTimestamp(),
-  }, { merge: true });
-  return newRole;
 }
 
-async function updateAuthUI() {
-  const authSection = document.getElementById('auth-section');
-  const userInfo = document.getElementById('user-info');
-
-  if (!authSection || !userInfo) return;
-
-  if (currentUser) {
-    authSection.classList.add('hidden');
-    userInfo.classList.remove('hidden');
-    const role = await ensureUserRole(currentUser);
-    const normalizedRole = String(role || 'customer').toLowerCase();
-    localStorage.setItem('giga_current_user_email', currentUser.email || '');
-    localStorage.setItem('giga_current_user_role', normalizedRole);
-    sessionStorage.setItem('giga_current_user_email', currentUser.email || '');
-    sessionStorage.setItem('giga_current_user_role', normalizedRole);
-    const roleLabel = normalizedRole === 'admin' ? 'Quản trị viên' : normalizedRole === 'seller' ? 'Người bán' : 'Khách hàng';
-    userInfo.innerHTML = `
-      <p>Xin chào, ${currentUser.displayName || currentUser.email}</p>
-      <button id="logout-btn">Đăng xuất</button>
-    `;
-    userRoleEl?.classList.remove('hidden');
-    userRoleEl.textContent = roleLabel;
-    accountSection?.classList.remove('hidden');
-    syncAccountLinkState(normalizedRole, Boolean(currentUser));
-    document.getElementById('logout-btn')?.addEventListener('click', logout);
-  } else {
-    authSection.classList.remove('hidden');
-    userInfo.classList.add('hidden');
-    userInfo.innerHTML = '';
-    localStorage.removeItem('giga_current_user_email');
-    localStorage.removeItem('giga_current_user_role');
-    sessionStorage.removeItem('giga_current_user_email');
-    sessionStorage.removeItem('giga_current_user_role');
-    accountSection?.classList.add('hidden');
-    if (accountLink) {
-      accountLink.href = 'login.html';
-    }
-    if (userRoleEl) {
-      userRoleEl.classList.add('hidden');
-      userRoleEl.textContent = '';
-    }
-  }
+// Format giá tiền Việt Nam
+function formatPrice(number) {
+    return number.toLocaleString('vi-VN') + 'đ';
 }
 
-function login() {
-  const email = prompt('Email:');
-  const password = prompt('Mật khẩu:');
-  if (!email || !password) return;
-  auth.signInWithEmailAndPassword(email, password)
-    .catch((error) => alert('Lỗi đăng nhập: ' + error.message));
-}
+// 5. Quản lý Hiển thị và Lọc Sản phẩm (Products Display & Filter)
+function renderProducts() {
+    const gridContainer = document.getElementById("product-grid-container");
+    if (!gridContainer) return;
 
-function register() {
-  const email = prompt('Email:');
-  const password = prompt('Mật khẩu:');
-  const displayName = prompt('Tên hiển thị:');
-  let role = prompt('Loại tài khoản (customer hoặc seller):', 'customer');
-  if (!email || !password) return;
-  if (!role || !['customer', 'seller'].includes(role.toLowerCase())) {
-    role = 'customer';
-  }
+    gridContainer.innerHTML = "";
 
-  auth.createUserWithEmailAndPassword(email, password)
-    .then(async (userCredential) => {
-      await userCredential.user.updateProfile({ displayName: displayName || '' });
-      const userRef = db.collection('users').doc(userCredential.user.uid);
-      await userRef.set({
-        email: email,
-        displayName: displayName || '',
-        role: String(email).toLowerCase() === ADMIN_EMAIL ? 'admin' : role.toLowerCase(),
-        createdAt: firebase.firestore.FieldValue.serverTimestamp(),
-      });
-    })
-    .catch((error) => alert('Lỗi đăng ký: ' + error.message));
-}
+    // Lọc theo danh mục và từ khóa tìm kiếm
+    const filtered = PRODUCTS.filter(product => {
+        const matchesCategory = (currentCategory === "all" || product.category === currentCategory);
+        const matchesSearch = product.name.toLowerCase().includes(searchQuery) || 
+                              product.description.toLowerCase().includes(searchQuery);
+        return matchesCategory && matchesSearch;
+    });
 
-function logout() {
-  auth.signOut();
-  localStorage.removeItem('giga_current_user_email');
-  localStorage.removeItem('giga_current_user_role');
-  sessionStorage.removeItem('giga_current_user_email');
-  sessionStorage.removeItem('giga_current_user_role');
-}
-
-async function loadProducts() {
-  if (!productGrid) return;
-
-  const cachedList = loadProductCache();
-  if (cachedList.length > 0) {
-    productList = cachedList;
-    hydrateProductMap(productList);
-    displayProducts(productList);
-    console.log('Loaded products from cache:', productList.length, 'items');
-    buildCategoryFilter(productList);
-    logCategoryDistribution(productList);
-    if ('requestIdleCallback' in window) {
-      requestIdleCallback(fetchRemoteProducts, { timeout: 2000 });
-    } else {
-      setTimeout(fetchRemoteProducts, 1000);
-    }
-    return;
-  }
-
-  await fetchRemoteProducts();
-}
-
-async function fetchRemoteProducts() {
-  if (!productGrid) return;
-
-  const endpoint = `${API_BASE}/api/lazada?keyword=laptop`;
-  console.log('Fetching products from API:', endpoint);
-
-  try {
-    const response = await fetch(endpoint, { cache: 'no-store' });
-    if (!response.ok) {
-      throw new Error('Không lấy được dữ liệu');
+    if (filtered.length === 0) {
+        gridContainer.innerHTML = `<p class="fallback-msg" style="grid-column: 1/-1;">Không tìm thấy sản phẩm nào phù hợp.</p>`;
+        return;
     }
 
-    const data = await response.json();
-    const products = data.data?.items || [];
-
-    if (products.length === 0) {
-      throw new Error('Danh sách sản phẩm rỗng');
-    }
-
-    productList = products.map((p) => ({
-      id: String(p.item_id || p.id || p.sku || ''),
-      name: String(p.title || p.name || 'Sản phẩm Lazada'),
-      price: Number(p.price || p.price_info?.sale_price || 0),
-      image: getProductImage(p) || PLACEHOLDER_IMAGE,
-      category: p.category || p.cat_name || 'Sản phẩm',
-      description: p.description || p.desc || 'Sản phẩm Lazada',
-    }));
-
-    hydrateProductMap(productList);
-    saveProductCache(productList);
-    displayProducts(productList);
-    buildCategoryFilter(productList);
-    logCategoryDistribution(productList);
-    console.log('Remote products loaded successfully:', productList.length, 'items');
-  } catch (error) {
-    console.warn('Load products error:', error.message || error);
-    if (productList.length === 0) {
-      productList = sampleProducts;
-      hydrateProductMap(productList);
-      displayProducts(sampleProducts, 'Đang hiển thị sản phẩm mẫu');
-      buildCategoryFilter(sampleProducts);
-      logCategoryDistribution(sampleProducts);
-      console.warn('Loaded fallback products because API request failed.');
-    }
-  }
+    filtered.forEach(product => {
+        const card = document.createElement("div");
+        card.className = "product-card";
+        card.innerHTML = `
+            <div class="product-card-img-wrapper" style="cursor: pointer;" onclick="showProductDetail('${product.id}')">
+                <img src="${product.image}" alt="${product.name}" onerror="this.src='https://placehold.co/600x400/fff9f3/1a1a1a?text=${encodeURIComponent(product.name)}'">
+            </div>
+            <div class="product-info">
+                <div>
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+                        <span style="font-size: 0.85rem; color: var(--text-secondary); text-transform: uppercase; font-weight: 600;">${product.category}</span>
+                        <span style="font-size: 0.85rem; color: var(--secondary-color); font-weight: bold;">★ ${product.rating}</span>
+                    </div>
+                    <h3 style="cursor: pointer;" onclick="showProductDetail('${product.id}')">${product.name}</h3>
+                    <p>${product.description.substring(0, 85)}...</p>
+                </div>
+                <div>
+                    <div class="product-price">
+                        <span style="text-decoration: line-through; font-size: 0.95rem; color: var(--text-secondary); margin-right: 0.5rem;">${formatPrice(product.oldPrice)}</span>
+                        <span>${formatPrice(product.price)}</span>
+                    </div>
+                    <div class="card-actions">
+                        <button class="add-to-cart" onclick="quickAddToCart('${product.id}')">Thêm vào giỏ</button>
+                        <a href="#" class="detail-link" onclick="showProductDetail('${product.id}'); return false;">Chi tiết</a>
+                    </div>
+                </div>
+            </div>
+        `;
+        gridContainer.appendChild(card);
+    });
 }
 
-function displayProducts(products, fallbackMessage = '') {
-  if (!productGrid) return;
-  productGrid.innerHTML = '';
+function filterByCategory(category) {
+    currentCategory = category;
+    
+    // Cập nhật class active cho các pills
+    const pills = document.querySelectorAll("#category-filter-container .category-pill");
+    pills.forEach(pill => {
+        const onclickAttr = pill.getAttribute("onclick");
+        if (onclickAttr && onclickAttr.includes(`'${category}'`)) {
+            pill.classList.add("active");
+        } else {
+            pill.classList.remove("active");
+        }
+    });
 
-  const fragment = document.createDocumentFragment();
+    renderProducts();
+}
 
-  if (fallbackMessage) {
-    const msg = document.createElement('p');
-    msg.className = 'fallback-msg';
-    msg.textContent = fallbackMessage;
-    fragment.appendChild(msg);
-  }
+// 6. Chi tiết Sản phẩm Tương tác (Product Detail Panel)
+function showProductDetail(productId) {
+    const product = PRODUCTS.find(p => p.id === productId);
+    if (!product) return;
 
-  if (!products || products.length === 0) {
-    const emptyMsg = document.createElement('p');
-    emptyMsg.textContent = 'Chưa có sản phẩm để hiển thị.';
-    fragment.appendChild(emptyMsg);
-    productGrid.appendChild(fragment);
-    return;
-  }
+    const detailContainer = document.getElementById("detail-panel-container");
+    if (!detailContainer) return;
 
-  const gridFragment = document.createDocumentFragment();
-  for (const product of products) {
-    const productCard = document.createElement('div');
-    productCard.className = 'product-card';
-    productCard.innerHTML = `
-      <img src="${product.image}" alt="${product.name}" loading="lazy" onerror="this.src='${PLACEHOLDER_IMAGE}'">
-      <div class="product-info">
-        <h3>${product.name}</h3>
-        <p class="product-price">${Number(product.price || 0).toLocaleString('vi-VN')} VND</p>
-        <div class="card-actions">
-          <button class="add-to-cart" data-id="${product.id}">Thêm vào giỏ</button>
-          <a href="product.html?id=${encodeURIComponent(product.id)}" class="detail-link">Xem chi tiết</a>
+    // Chọn ngẫu nhiên gợi ý (các sản phẩm khác)
+    const suggestions = PRODUCTS.filter(p => p.id !== productId).slice(0, 2);
+
+    detailContainer.innerHTML = `
+        <div class="detail-card">
+            <div class="detail-image">
+                <img src="${product.image}" alt="${product.name}" onerror="this.src='https://placehold.co/600x600/fff9f3/1a1a1a?text=${encodeURIComponent(product.name)}'">
+            </div>
+            <div class="detail-content">
+                <div class="product-category">${product.category}</div>
+                <h1>${product.name}</h1>
+                
+                <div class="product-meta">
+                    <div class="rating-badge">
+                        <span>★ ${product.rating}</span>
+                    </div>
+                    <span>(${product.reviewsCount} đánh giá từ người dùng)</span>
+                </div>
+
+                <div class="price-row">
+                    <span class="price-old">${formatPrice(product.oldPrice)}</span>
+                    <span class="price-current">${formatPrice(product.price)}</span>
+                    <span class="price-tag">Tiết kiệm ${formatPrice(product.oldPrice - product.price)}</span>
+                </div>
+
+                <p class="detail-description">${product.description}</p>
+
+                <!-- Lựa chọn cấu hình sản phẩm -->
+                <div class="product-options">
+                    <div class="option-group">
+                        <label>Màu sắc:</label>
+                        <div class="option-list" id="detail-color-list">
+                            ${product.options.colors.map((color, i) => `
+                                <button class="option-button ${i === 0 ? 'active' : ''}" onclick="selectOption(this, 'color')">${color}</button>
+                            `).join('')}
+                        </div>
+                    </div>
+
+                    <div class="option-group">
+                        <label>Kích thước:</label>
+                        <div class="option-list" id="detail-size-list">
+                            ${product.options.sizes.map((size, i) => `
+                                <button class="option-button ${i === 0 ? 'active' : ''}" onclick="selectOption(this, 'size')">${size}</button>
+                            `).join('')}
+                        </div>
+                    </div>
+                </div>
+
+                <div class="detail-actions">
+                    <button class="btn-add" onclick="addDetailedToCart('${product.id}')">Thêm Vào Giỏ Hàng</button>
+                    <button class="btn-buy" onclick="buyNowDetailed('${product.id}')">Mua Ngay Lập Tức</button>
+                </div>
+
+                <!-- Chính sách bán hàng Giga -->
+                <div class="product-policy">
+                    <div>
+                        <strong>✓ Cam kết chất lượng cao cấp</strong>
+                        <p>Bảo hành chính hãng 24 tháng cho mọi chi tiết khung gỗ và lỗi gia công cơ khí.</p>
+                    </div>
+                    <div>
+                        <strong>✓ Đổi trả linh hoạt</strong>
+                        <p>Đổi sản phẩm mới miễn phí trong vòng 7 ngày nếu không phù hợp thẩm mỹ không gian sống.</p>
+                    </div>
+                </div>
+            </div>
         </div>
-      </div>
-    `;
-    gridFragment.appendChild(productCard);
-  }
 
-  fragment.appendChild(gridFragment);
-  productGrid.appendChild(fragment);
+        <!-- Nhận xét khách hàng -->
+        <div class="product-feedback">
+            <h2>Nhận Xét Từ Khách Hàng</h2>
+            <div id="reviews-list">
+                ${product.reviews.map(rev => `
+                    <div class="review-card">
+                        <div class="review-meta">
+                            <strong style="color: var(--text-color);">${rev.user}</strong>
+                            <span style="color: var(--secondary-color);">★ ${'★'.repeat(rev.rating)}${'☆'.repeat(5 - rev.rating)}</span>
+                            <span>Ngày: ${rev.date}</span>
+                        </div>
+                        <h4 class="review-title">${rev.title}</h4>
+                        <p>${rev.content}</p>
+                    </div>
+                `).join('')}
+            </div>
+        </div>
+
+        <!-- Sản phẩm gợi ý -->
+        <div class="product-suggestions">
+            <h2>Gợi Ý Cho Không Gian Của Bạn</h2>
+            <div class="suggestion-grid">
+                ${suggestions.map(sug => `
+                    <div class="suggestion-card">
+                        <img src="${sug.image}" alt="${sug.name}" onerror="this.src='https://placehold.co/300x200/fff9f3/1a1a1a?text=${encodeURIComponent(sug.name)}'">
+                        <div class="suggestion-card-body">
+                            <strong>${sug.name}</strong>
+                            <div class="suggestion-price">${formatPrice(sug.price)}</div>
+                            <button class="btn-suggestion" onclick="showProductDetail('${sug.id}')">Xem chi tiết</button>
+                        </div>
+                    </div>
+                `).join('')}
+            </div>
+        </div>
+
+        <button class="detail-close-btn" onclick="closeProductDetail()">Đóng chi tiết</button>
+    `;
+
+    // Hiển thị panel chi tiết và cuộn đến nó
+    detailContainer.classList.remove("hidden");
+    detailContainer.scrollIntoView({ behavior: "smooth", block: "start" });
 }
 
-productGrid?.addEventListener('click', (event) => {
-  const addButton = event.target.closest('.add-to-cart');
-  if (addButton) {
-    addToCart(String(addButton.dataset.id));
-    return;
-  }
-});
+function selectOption(button, type) {
+    // Bỏ active của các nút cùng nhóm
+    const parent = button.parentElement;
+    const buttons = parent.querySelectorAll(".option-button");
+    buttons.forEach(btn => btn.classList.remove("active"));
+    
+    // Set active cho nút được bấm
+    button.classList.add("active");
+}
 
-function getProductById(id) {
-  const normalizedId = String(id);
-  if (productMap.has(normalizedId)) {
-    return productMap.get(normalizedId);
-  }
-
-  const cachedList = loadProductCache();
-  if (cachedList.length > 0) {
-    hydrateProductMap(cachedList);
-    if (productMap.has(normalizedId)) {
-      return productMap.get(normalizedId);
+function closeProductDetail() {
+    const detailContainer = document.getElementById("detail-panel-container");
+    if (detailContainer) {
+        detailContainer.classList.add("hidden");
     }
-  }
-
-  return sampleProducts.find((p) => String(p.id) === normalizedId) || {
-    id: normalizedId,
-    name: 'Sản phẩm không xác định',
-    price: 0,
-    image: 'https://placehold.co/300x200?text=No+Image',
-    category: 'Sản phẩm',
-    description: '',
-  };
+    document.getElementById("shop").scrollIntoView({ behavior: "smooth", block: "start" });
 }
 
-function addToCart(productId) {
-  const product = getProductById(productId);
-  const existingItem = cart.find((item) => String(item.id) === String(productId));
+// 7. Công cụ Giỏ Hàng (Cart Engine)
+function updateCartBadge() {
+    const totalQty = cart.reduce((sum, item) => sum + item.quantity, 0);
+    const badge = document.getElementById("cart-count");
+    if (badge) {
+        badge.innerText = totalQty;
+    }
+}
 
-  if (existingItem) {
-    existingItem.quantity += 1;
-  } else {
-    cart.push({
-      id: String(productId),
-      name: product.name,
-      price: Number(product.price || 0),
-      image: product.image,
-      quantity: 1,
+function quickAddToCart(productId) {
+    const product = PRODUCTS.find(p => p.id === productId);
+    if (!product) return;
+
+    // Chọn các tùy chọn mặc định đầu tiên
+    const defaultColor = product.options.colors[0];
+    const defaultSize = product.options.sizes[0];
+
+    addToCart(productId, defaultColor, defaultSize, 1);
+    
+    // Hiển thị thông báo nhỏ
+    alert(`Đã thêm 1 x ${product.name} (${defaultColor}) vào giỏ hàng.`);
+}
+
+function addDetailedToCart(productId) {
+    const product = PRODUCTS.find(p => p.id === productId);
+    if (!product) return;
+
+    // Lấy màu và kích cỡ đang được lựa chọn active
+    const colorBtn = document.querySelector("#detail-color-list .option-button.active");
+    const sizeBtn = document.querySelector("#detail-size-list .option-button.active");
+    
+    const color = colorBtn ? colorBtn.innerText : product.options.colors[0];
+    const size = sizeBtn ? sizeBtn.innerText : product.options.sizes[0];
+
+    addToCart(productId, color, size, 1);
+    alert(`Đã thêm ${product.name} [Màu: ${color}, Size: ${size}] vào giỏ hàng thành công.`);
+}
+
+function buyNowDetailed(productId) {
+    const product = PRODUCTS.find(p => p.id === productId);
+    if (!product) return;
+
+    const colorBtn = document.querySelector("#detail-color-list .option-button.active");
+    const sizeBtn = document.querySelector("#detail-size-list .option-button.active");
+    
+    const color = colorBtn ? colorBtn.innerText : product.options.colors[0];
+    const size = sizeBtn ? sizeBtn.innerText : product.options.sizes[0];
+
+    addToCart(productId, color, size, 1);
+    
+    // Chuyển hướng nhanh sang trang Checkout thanh toán
+    showSection("checkout");
+}
+
+function addToCart(productId, color, size, quantity) {
+    const product = PRODUCTS.find(p => p.id === productId);
+    if (!product) return;
+
+    // Tìm xem sản phẩm có cùng màu và kích cỡ đã có trong giỏ hàng chưa
+    const existingIndex = cart.findIndex(item => 
+        item.productId === productId && item.color === color && item.size === size
+    );
+
+    if (existingIndex > -1) {
+        cart[existingIndex].quantity += quantity;
+    } else {
+        cart.push({
+            productId: productId,
+            name: product.name,
+            price: product.price,
+            image: product.image,
+            color: color,
+            size: size,
+            quantity: quantity
+        });
+    }
+
+    // Lưu vào LocalStorage
+    localStorage.setItem("giga_cart", JSON.stringify(cart));
+    updateCartBadge();
+}
+
+function changeQuantity(index, delta) {
+    cart[index].quantity += delta;
+    if (cart[index].quantity <= 0) {
+        cart.splice(index, 1);
+    }
+    localStorage.setItem("giga_cart", JSON.stringify(cart));
+    updateCartBadge();
+    renderCart();
+}
+
+function renderCart() {
+    const cartItemsContainer = document.getElementById("cart-items");
+    const emptyMsg = document.getElementById("cart-empty-message");
+    const summaryBlock = document.getElementById("cart-summary-block");
+    if (!cartItemsContainer) return;
+
+    cartItemsContainer.innerHTML = "";
+
+    if (cart.length === 0) {
+        emptyMsg.classList.remove("hidden");
+        summaryBlock.classList.add("hidden");
+        return;
+    }
+
+    emptyMsg.classList.add("hidden");
+    summaryBlock.classList.remove("hidden");
+
+    let total = 0;
+
+    cart.forEach((item, index) => {
+        const itemTotal = item.price * item.quantity;
+        total += itemTotal;
+
+        const cartItemEl = document.createElement("div");
+        cartItemEl.className = "cart-item";
+        cartItemEl.innerHTML = `
+            <img src="${item.image}" alt="${item.name}" onerror="this.src='https://placehold.co/100x100/fff9f3/1a1a1a?text=${encodeURIComponent(item.name)}'">
+            <div class="cart-item-info">
+                <h4>${item.name}</h4>
+                <p style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 0.2rem; font-weight: normal;">
+                    Màu: ${item.color} | Kích thước: ${item.size}
+                </p>
+                <p>${formatPrice(item.price)}</p>
+            </div>
+            <div class="cart-item-quantity">
+                <button onclick="changeQuantity(${index}, -1)">-</button>
+                <span>${item.quantity}</span>
+                <button onclick="changeQuantity(${index}, 1)">+</button>
+            </div>
+            <div style="margin-left: 1.5rem; font-weight: bold; min-width: 90px; text-align: right;">
+                ${formatPrice(itemTotal)}
+            </div>
+        `;
+        cartItemsContainer.appendChild(cartItemEl);
     });
-  }
 
-  updateCart();
-  alert('Đã thêm sản phẩm vào giỏ hàng');
+    document.getElementById("cart-total").innerText = formatPrice(total);
 }
 
-function updateCart() {
-  localStorage.setItem('cart', JSON.stringify(cart));
-  updateCartDisplay();
+// 8. Tiến Trình Thanh Toán (Checkout Handler)
+function updateCheckoutSummary() {
+    const totalSum = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+    const checkoutTotal = document.getElementById("checkout-total-price");
+    if (checkoutTotal) {
+        checkoutTotal.innerText = formatPrice(totalSum);
+    }
 }
 
-function getCategoryList(products) {
-  const categories = new Set(['all']);
-  products.forEach((product) => {
-    const category = String(product.category || 'khác').toLowerCase();
-    categories.add(category);
-  });
-  return Array.from(categories);
+function handleCheckoutSubmit(event) {
+    event.preventDefault();
+
+    if (cart.length === 0) {
+        alert("Giỏ hàng của bạn đang trống. Không thể đặt hàng.");
+        showSection("shop");
+        return;
+    }
+
+    const name = document.getElementById("shipping-name").value;
+    const phone = document.getElementById("shipping-phone").value;
+    const email = document.getElementById("shipping-email").value;
+    const address = document.getElementById("shipping-address").value;
+    const payment = document.getElementById("payment-method").value;
+    const totalSum = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+
+    const newOrder = {
+        orderId: "GIGA-" + Math.floor(100000 + Math.random() * 900000),
+        date: new Date().toLocaleDateString('vi-VN') + " " + new Date().toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' }),
+        items: [...cart],
+        total: totalSum,
+        shipping: {
+            name: name,
+            phone: phone,
+            email: email,
+            address: address,
+            payment: payment
+        },
+        status: "Đang xử lý hỏa tốc"
+    };
+
+    orders.unshift(newOrder);
+    localStorage.setItem("giga_orders", JSON.stringify(orders));
+
+    // Xóa giỏ hàng
+    cart = [];
+    localStorage.removeItem("giga_cart");
+    updateCartBadge();
+
+    alert(`Đặt hàng thành công! Đơn hàng mã số ${newOrder.orderId} đang được chuyển sang xử lý hỏa tốc.`);
+    
+    // Tự động đồng bộ và lưu thông tin sang tài khoản
+    userProfile.name = name;
+    userProfile.email = email;
+    userProfile.address = address;
+    localStorage.setItem("giga_profile", JSON.stringify(userProfile));
+
+    // Bật trạng thái đã đăng nhập để hiển thị đơn hàng
+    isLoggedIn = true;
+    localStorage.setItem("giga_auth", "true");
+    toggleAuthUI();
+
+    // Reset checkout form
+    document.getElementById("checkout-form").reset();
+
+    // Chuyển sang xem tài khoản (xem lịch sử đơn hàng vừa tạo)
+    showSection("account");
 }
 
-function formatCategoryName(slug) {
-  if (slug === 'all') return 'Tất cả';
-  return slug
-    .split(/[-_\s]+/)
-    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
-    .join(' ');
+// 9. Tài Khoản & Lịch Sử Đơn Hàng (Account View & Simulated Login)
+function simulateAuth(loginMode) {
+    isLoggedIn = true;
+    localStorage.setItem("giga_auth", "true");
+    
+    // Điền thông tin mặc định
+    document.getElementById("profile-name").value = userProfile.name;
+    document.getElementById("profile-email").value = userProfile.email;
+    document.getElementById("profile-address").value = userProfile.address;
+
+    toggleAuthUI();
+    renderOrderHistory();
+
+    alert(loginMode ? "Đăng nhập thử nghiệm thành công!" : "Đăng ký thành viên thành công! Bạn nhận được chiết khấu 10% cho lần mua hàng sau.");
 }
 
-function buildCategoryFilter(products) {
-  if (!categoryFilter) return;
-  const categories = getCategoryList(products);
-  categoryFilter.innerHTML = categories
-    .map((category) => `<button type="button" class="category-pill ${category === selectedCategory ? 'active' : ''}" data-category="${category}">${formatCategoryName(category)}</button>`)
-    .join('');
+function toggleAuthUI() {
+    const authSec = document.getElementById("auth-section");
+    const profDash = document.getElementById("profile-dashboard");
+
+    if (!authSec || !profDash) return;
+
+    if (isLoggedIn) {
+        authSec.style.display = "none";
+        profDash.style.display = "grid";
+        
+        // Thay đổi liên kết tiêu đề tài khoản
+        const accountLink = document.getElementById("account-link");
+        if (accountLink) {
+            accountLink.innerText = "Tài khoản (Đã đăng nhập)";
+        }
+    } else {
+        authSec.style.display = "block";
+        profDash.style.display = "none";
+        
+        const accountLink = document.getElementById("account-link");
+        if (accountLink) {
+            accountLink.innerText = "Tài khoản";
+        }
+    }
 }
 
-function applyFilters() {
-  const filteredProducts = productList.filter((product) => {
-    const matchesSearch = searchQuery
-      ? product.name.toLowerCase().includes(searchQuery) || String(product.category || '').toLowerCase().includes(searchQuery)
-      : true;
-    const matchesCategory = selectedCategory === 'all' ? true : String(product.category || 'khác').toLowerCase() === selectedCategory;
-    return matchesSearch && matchesCategory;
-  });
-  displayProducts(filteredProducts, filteredProducts.length === 0 ? 'Không tìm thấy sản phẩm phù hợp.' : '');
+function saveProfile() {
+    userProfile.name = document.getElementById("profile-name").value;
+    userProfile.email = document.getElementById("profile-email").value;
+    userProfile.address = document.getElementById("profile-address").value;
+
+    localStorage.setItem("giga_profile", JSON.stringify(userProfile));
+    alert("Cập nhật thông tin tài khoản thành công!");
 }
 
-function updateCartDisplay() {
-  const cartItems = document.getElementById('cart-items');
-  if (!cartItems) return;
-
-  cartItems.innerHTML = '';
-  if (cart.length === 0) {
-    cartItems.innerHTML = '<p>Giỏ hàng trống</p>';
-    return;
-  }
-
-  let total = 0;
-  const fragment = document.createDocumentFragment();
-
-  cart.forEach((item) => {
-    const product = getProductById(item.id);
-    const price = Number(item.price || product.price || 0);
-    total += price * item.quantity;
-
-    const cartItem = document.createElement('div');
-    cartItem.className = 'cart-item';
-    cartItem.innerHTML = `
-      <img src="${product.image}" alt="${product.name}" loading="lazy" onerror="this.src='https://placehold.co/80x80?text=No+Image'">
-      <div class="cart-item-info">
-        <h4>${product.name}</h4>
-        <p>${price.toLocaleString('vi-VN')} VND</p>
-      </div>
-      <div class="cart-item-quantity">
-        <button type="button" onclick="changeQuantity('${item.id}', -1)">-</button>
-        <span>${item.quantity}</span>
-        <button type="button" onclick="changeQuantity('${item.id}', 1)">+</button>
-      </div>
-    `;
-    fragment.appendChild(cartItem);
-  });
-
-  cartItems.appendChild(fragment);
-  const totalEl = document.getElementById('cart-total');
-  if (totalEl) {
-    totalEl.textContent = `Tổng cộng: ${total.toLocaleString('vi-VN')} VND`;
-  }
+function logoutProfile() {
+    isLoggedIn = false;
+    localStorage.removeItem("giga_auth");
+    toggleAuthUI();
+    alert("Đã đăng xuất khỏi tài khoản.");
 }
 
-function changeQuantity(productId, change) {
-  const item = cart.find((entry) => String(entry.id) === String(productId));
-  if (!item) return;
+function renderOrderHistory() {
+    const orderList = document.getElementById("order-history-list");
+    const emptyMsg = document.getElementById("order-empty-message");
+    if (!orderList) return;
 
-  item.quantity += change;
-  if (item.quantity <= 0) {
-    cart = cart.filter((entry) => String(entry.id) !== String(productId));
-  }
-  updateCart();
-}
+    orderList.innerHTML = "";
 
-function showCheckout() {
-  if (cartSection) cartSection.classList.add('hidden');
-  if (checkoutSection) checkoutSection.classList.remove('hidden');
-}
+    if (orders.length === 0) {
+        emptyMsg.classList.remove("hidden");
+        return;
+    }
 
-function processCheckout(event) {
-  event.preventDefault();
+    emptyMsg.classList.add("hidden");
 
-  if (!currentUser) {
-    alert('Vui lòng đăng nhập để thanh toán');
-    return;
-  }
+    orders.forEach(order => {
+        const orderCard = document.createElement("div");
+        orderCard.className = "order-card";
+        
+        const itemsHtml = order.items.map(item => 
+            `<p>• <strong>${item.name}</strong> x ${item.quantity} (${item.color}) - <span style="color: var(--secondary-color); font-weight: bold;">${formatPrice(item.price)}</span></p>`
+        ).join("");
 
-  if (cart.length === 0) {
-    alert('Giỏ hàng đang trống');
-    return;
-  }
-
-  alert('Thanh toán thành công!');
-  cart = [];
-  updateCart();
-
-  if (checkoutSection) checkoutSection.classList.add('hidden');
-  if (cartSection) cartSection.classList.remove('hidden');
-}
-
-function setupEventListeners() {
-  if (shopNowBtn) {
-    shopNowBtn.addEventListener('click', () => {
-      document.getElementById('products')?.scrollIntoView({ behavior: 'smooth' });
+        orderCard.innerHTML = `
+            <div class="order-header">
+                <div>
+                    <strong>Mã đơn hàng: ${order.orderId}</strong>
+                    <p style="font-size: 0.85rem; margin-top: 0.25rem;">Đặt ngày: ${order.date}</p>
+                </div>
+                <div style="text-align: right;">
+                    <div class="order-total">${formatPrice(order.total)}</div>
+                    <span style="display: inline-block; font-size: 0.8rem; background: rgba(245, 114, 36, 0.08); color: var(--secondary-color); border: 1px solid rgba(245, 114, 36, 0.2); border-radius: 999px; padding: 2px 10px; font-weight: bold; margin-top: 0.4rem;">
+                        ${order.status}
+                    </span>
+                </div>
+            </div>
+            <div class="order-items" style="border-top: 1px solid var(--border-color); padding-top: 0.85rem; margin-top: 0.85rem;">
+                ${itemsHtml}
+            </div>
+            <div style="font-size: 0.85rem; color: var(--text-secondary); margin-top: 0.75rem; font-style: italic;">
+                Gửi tới: ${order.shipping.name} | ${order.shipping.address} | Thanh toán: ${order.shipping.payment.toUpperCase()}
+            </div>
+        `;
+        orderList.appendChild(orderCard);
     });
-  }
-  if (productSearchInput) {
-    productSearchInput.addEventListener('input', (event) => {
-      searchQuery = event.target.value.toLowerCase();
-      applyFilters();
-    });
-  }
-  if (categoryFilter) {
-    categoryFilter.addEventListener('click', (event) => {
-      const pill = event.target.closest('.category-pill');
-      if (!pill) return;
-      selectedCategory = pill.dataset.category || 'all';
-      applyFilters();
-      categoryFilter.querySelectorAll('.category-pill').forEach((button) => {
-        button.classList.toggle('active', button.dataset.category === selectedCategory);
-      });
-    });
-  }
-  if (loginBtn) loginBtn.addEventListener('click', login);
-  if (registerBtn) registerBtn.addEventListener('click', register);
-  if (checkoutBtn) checkoutBtn.addEventListener('click', showCheckout);
-  if (checkoutForm) checkoutForm.addEventListener('submit', processCheckout);
 }
-
-window.changeQuantity = changeQuantity;

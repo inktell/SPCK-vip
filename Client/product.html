@@ -1,37 +1,120 @@
 <!DOCTYPE html>
 <html lang="vi">
+
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Chi tiết sản phẩm | Giga</title>
-  <link rel="stylesheet" href="style.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chi Tiết Sản Phẩm | ShopInk</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="styles/styles.css">
+    <style>
+        .main-img-container { background: #fff; border-radius: 12px; overflow: hidden; border: 1px solid #ddd; }
+        .img-main { width: 100%; height: 500px; object-fit: contain; }
+        .thumb-item { width: 80px; height: 80px; border: 2px solid #ddd; border-radius: 8px; cursor: pointer; transition: 0.3s; }
+        .thumb-item:hover, .thumb-item.active { border-color: #0d6efd; }
+    </style>
 </head>
+
 <body>
-  <header>
-    <nav>
-      <div class="logo">Giga</div>
-      <ul>
-        <li><a href="index.html">Trang chủ</a></li>
-        <li><a href="index.html#products">Sản phẩm</a></li>
-        <li><a href="order.html">Giỏ hàng</a></li>
-        <li><a id="account-link" href="login.html">Tài khoản</a></li>
-      </ul>
+    <nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm sticky-top">
+        <div class="container-fluid">
+            <a class="navbar-brand fw-bold" href="index.html"><i class="bi bi-shop"></i> ShopInk</a>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item"><a class="nav-link" href="index.html">Trang Chủ</a></li>
+                    <li class="nav-item"><a class="nav-link" href="cart.html"><i class="bi bi-cart"></i> Giỏ Hàng</a></li>
+                </ul>
+            </div>
+        </div>
     </nav>
-  </header>
 
-  <main class="page-shell">
-    <section class="page-header">
-      <h1>Chi tiết sản phẩm</h1>
-      <p>Xem thông tin chi tiết và thêm sản phẩm vào giỏ ngay.</p>
-    </section>
+    <div class="container my-5">
+        <nav aria-label="breadcrumb" class="mb-4">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="index.html">Trang chủ</a></li>
+                <li class="breadcrumb-item active" id="breadcrumbActive">Đang tải...</li>
+            </ol>
+        </nav>
 
-    <section id="product-detail"></section>
-  </main>
+        <div class="row g-5">
+            <div class="col-lg-6">
+                <div class="main-img-container shadow-sm mb-3 position-relative">
+                    <img id="mainImg" src="https://placehold.co/600x600?text=Sản+Phẩm" class="img-main" alt="Product Image">
+                </div>
+                <div class="d-flex gap-2 justify-content-center" id="thumbList"></div>
+            </div>
 
-  <footer>
-    <p>&copy; 2026 Giga. Tất cả quyền được bảo lưu.</p>
-  </footer>
+            <div class="col-lg-6">
+                <div class="ps-lg-4">
+                    <h1 class="fw-bold mb-3" id="productTitle">Đang tải sản phẩm...</h1>
+                    
+                    <div class="product-rating mb-3">
+                        <i class="bi bi-star-fill text-warning"></i>
+                        <span id="ratingValue">5.0</span>
+                        <span class="text-muted ms-2" id="soldCount">| Đã bán 0</span>
+                    </div>
 
-  <script defer src="product.js"></script>
+                    <div class="mb-4 bg-light p-3 rounded">
+                        <span class="text-decoration-line-through text-muted" id="originalPrice"></span>
+                        <span class="fs-2 fw-bold text-danger ms-2" id="currentPrice">0đ</span>
+                        <span class="badge bg-danger ms-2" id="discountBadge"></span>
+                    </div>
+
+                    <div class="mb-4">
+                        <h6 class="fw-bold">Số lượng:</h6>
+                        <div class="input-group mt-2" style="width: 140px;">
+                            <button class="btn btn-outline-secondary" onclick="updateQty(-1)">-</button>
+                            <input type="text" class="form-control text-center" id="quantity" value="1">
+                            <button class="btn btn-outline-secondary" onclick="updateQty(1)">+</button>
+                        </div>
+                    </div>
+
+                    <div class="product-actions d-flex gap-3 mb-5">
+                        <button class="btn btn-primary btn-lg flex-grow-1 py-3" onclick="addToCart()">THÊM VÀO GIỎ</button>
+                    </div>
+
+                    <div class="card bg-white border-dashed p-3">
+                        <div class="small mb-2"><i class="bi bi-truck text-success me-2"></i>Giao hàng nhanh toàn quốc</div>
+                        <div class="small"><i class="bi bi-shield-check text-success me-2"></i>Bảo hành chính hãng từ Lazada</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row mt-5">
+            <div class="col-12">
+                <ul class="nav nav-tabs mb-4">
+                    <li class="nav-item">
+                        <button class="nav-link active fw-bold" data-bs-toggle="tab" data-bs-target="#desc-pane">Mô Tả Sản Phẩm</button>
+                    </li>
+                </ul>
+                <div class="tab-content bg-white p-4 rounded shadow-sm border">
+                    <div class="tab-pane fade show active" id="desc-pane">
+                        <p>Đang tải mô tả chi tiết...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer class="bg-dark text-white py-5 mt-5">
+        <div class="container text-center">
+            <p>&copy; 2026 ShopInk. Trải nghiệm mua sắm tốt nhất.</p>
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="scripts/detail.js"></script>
+    <script>
+        function changeImg(src) {
+            document.getElementById('mainImg').src = src;
+        }
+        function updateQty(val) {
+            let input = document.getElementById('quantity');
+            let current = parseInt(input.value);
+            if (current + val >= 1) input.value = current + val;
+        }
+    </script>
 </body>
 </html>

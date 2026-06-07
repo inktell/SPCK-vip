@@ -3,65 +3,329 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Giga - Mua sắm nhanh chóng</title>
+    <title>Giga - Trải nghiệm mua sắm đẳng cấp và tinh tế</title>
     <link rel="stylesheet" href="style.css">
-    <link rel="preconnect" href="https://www.gstatic.com" crossorigin>
-    <link rel="dns-prefetch" href="https://www.gstatic.com">
-    <link rel="preconnect" href="https://placehold.co" crossorigin>
-    <link rel="dns-prefetch" href="https://placehold.co">
+    
+    <!-- Google Fonts for premium typography -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    
+    <!-- Local CSS Overrides to keep style.css shared and untouched -->
+    <style>
+        /* Reset browser link outline boxes on focus */
+        nav ul li a:focus,
+        nav ul li a:active,
+        nav ul li a:focus-visible {
+            outline: none !important;
+            box-shadow: none !important;
+        }
+        
+        /* Active links visual states */
+        nav ul li a.active {
+            color: var(--secondary-color) !important;
+            font-weight: bold;
+        }
+        
+        nav ul li a.nav-btn.active {
+            background-color: transparent !important;
+            color: var(--secondary-color) !important;
+            border-color: var(--secondary-color) !important;
+            font-weight: bold;
+        }
+
+        /* Prevent specificity conflicts (e.g. .layout displaying grid when hidden) */
+        #profile-dashboard.hidden,
+        #auth-section.hidden,
+        .hidden {
+            display: none !important;
+        }
+    </style>
+    
+    <!-- Scripts for Firebase -->
     <script defer src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script defer src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
     <script defer src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
 </head>
 <body>
+    <!-- Navigation Header -->
     <header>
         <nav>
-            <div class="logo">Giga</div>
-            <ul>
-                <li><a href="index.html">Trang chủ</a></li>
-                <li><a href="#products">Sản phẩm</a></li>
-                <li><a href="order.html">Giỏ hàng</a></li>
-                <li><a href="/AI/public/index.html">Trợ giúp AI</a></li>
-                <li><a id="account-link" href="login.html">Tài khoản</a></li>
+            <div class="logo" style="cursor: pointer;" onclick="showSection('home')">Giga</div>
+            <ul id="nav-links">
+                <li><a href="#" onclick="showSection('home')" class="nav-btn active">Trang chủ</a></li>
+                <li><a href="#" onclick="showSection('shop')" class="nav-btn">Sản phẩm</a></li>
+                <li><a href="#" onclick="showSection('cart')" class="nav-btn" id="cart-nav-link">
+                    Giỏ hàng <span id="cart-count" style="margin-left: 6px; background: var(--secondary-color); color: #fff; border-radius: 50%; padding: 2px 7px; font-size: 0.8rem; font-weight: bold;">0</span>
+                </a></li>
+                <li><a id="account-link" href="#" onclick="showSection('account')" class="nav-btn">Tài khoản</a></li>
             </ul>
         </nav>
     </header>
 
     <main>
+        <!-- Home / Welcome & Landing Section -->
         <section id="home" class="hero">
             <h1>Chào mừng đến với Giga</h1>
-            <p>Mua sắm nhanh chóng với tốc độ vượt trội</p>
-            <button id="shop-now">Mua ngay</button>
-        </section>
+            <p>Khám phá không gian sống sang trọng, tối giản với tốc độ giao dịch vượt trội và chất lượng đẳng cấp châu Âu.</p>
+            <button id="shop-now" onclick="showSection('shop')">Mua sắm ngay</button>
 
-        <section id="products" class="products">
-            <h2>Sản phẩm nổi bật</h2>
-            <div class="product-filters">
-                <input id="product-search" class="product-search" type="search" placeholder="Tìm kiếm sản phẩm..." />
-                <div id="category-filter" class="category-filter"></div>
+            <!-- Value / Quality Advertisement Grid -->
+            <div class="page-shell" style="padding: 4rem 0 0; width: 100%; max-width: 1200px;">
+                <h2 style="font-size: 2.2rem; font-weight: 800; text-align: center; margin-bottom: 2.5rem; letter-spacing: -0.5px;">Tại sao chọn Giga?</h2>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1.5rem; text-align: left;">
+                    
+                    <!-- Quality Ad Card 1 -->
+                    <div class="panel" style="background: #fff; border-radius: 20px; border: 1px solid var(--border-color); padding: 2rem;">
+                        <div style="background: var(--surface-color); width: 50px; height: 50px; border-radius: 12px; display: flex; align-items: center; justify-content: center; margin-bottom: 1.25rem;">
+                            <!-- SVG Premium Trophy Icon -->
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--secondary-color)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"></path><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"></path><path d="M4 22h16"></path><path d="M10 14.66V17c0 .55-.45 1-1 1H4v2h16v-2h-5c-.55 0-1-.45-1-1v-2.34"></path><path d="M12 2a5 5 0 0 1 5 5v5a5 5 0 0 1-10 0V7a5 5 0 0 1 5-5z"></path></svg>
+                        </div>
+                        <h3 style="font-size: 1.25rem; font-weight: 700; margin-bottom: 0.75rem;">Chất lượng tuyệt mỹ</h3>
+                        <p style="color: var(--text-secondary); font-size: 0.95rem; line-height: 1.5;">Tuyển chọn khắt khe từ các vật liệu tự nhiên cao cấp như gỗ sồi nguyên khối, đồng thau và da thuộc nhập khẩu.</p>
+                    </div>
+
+                    <!-- Quality Ad Card 2 -->
+                    <div class="panel" style="background: #fff; border-radius: 20px; border: 1px solid var(--border-color); padding: 2rem;">
+                        <div style="background: var(--surface-color); width: 50px; height: 50px; border-radius: 12px; display: flex; align-items: center; justify-content: center; margin-bottom: 1.25rem;">
+                            <!-- SVG Fast Shipping Icon -->
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--secondary-color)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="3" width="15" height="13"></rect><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"></polygon><circle cx="5.5" cy="18.5" r="2.5"></circle><circle cx="18.5" cy="18.5" r="2.5"></circle></svg>
+                        </div>
+                        <h3 style="font-size: 1.25rem; font-weight: 700; margin-bottom: 0.75rem;">Vận chuyển hỏa tốc</h3>
+                        <p style="color: var(--text-secondary); font-size: 0.95rem; line-height: 1.5;">Hệ thống kho bãi thông minh giúp tối ưu thời gian đóng gói và vận chuyển đến tay bạn trong thời gian siêu tốc.</p>
+                    </div>
+
+                    <!-- Quality Ad Card 3 -->
+                    <div class="panel" style="background: #fff; border-radius: 20px; border: 1px solid var(--border-color); padding: 2rem;">
+                        <div style="background: var(--surface-color); width: 50px; height: 50px; border-radius: 12px; display: flex; align-items: center; justify-content: center; margin-bottom: 1.25rem;">
+                            <!-- SVG Minimalist Heart Icon -->
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--secondary-color)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"></path></svg>
+                        </div>
+                        <h3 style="font-size: 1.25rem; font-weight: 700; margin-bottom: 0.75rem;">Thiết kế độc bản</h3>
+                        <p style="color: var(--text-secondary); font-size: 0.95rem; line-height: 1.5;">Bộ sưu tập mang đậm tinh thần Bắc Âu (Scandinavian) và chủ nghĩa tối giản tối thượng (Minimalism).</p>
+                    </div>
+
+                </div>
             </div>
-            <div class="product-grid" id="product-grid"></div>
         </section>
 
+        <!-- Shop / Products Grid Section -->
+        <section id="shop" class="products hidden">
+            <h2>Bộ Sưu Tập Của Chúng Tôi</h2>
+            <p style="text-align: center; color: var(--text-secondary); margin-top: -1rem; margin-bottom: 2rem;">Thổi hồn nghệ thuật tối giản vào tổ ấm của bạn</p>
+            
+            <!-- Filters Block -->
+            <div class="product-filters">
+                <input type="text" id="search-input" class="product-search" placeholder="Tìm kiếm sản phẩm...">
+                <div class="category-filter" id="category-filter-container">
+                    <button class="category-pill active" onclick="filterByCategory('all')">Tất cả</button>
+                    <button class="category-pill" onclick="filterByCategory('chair')">Ghế</button>
+                    <button class="category-pill" onclick="filterByCategory('sofa')">Sofa</button>
+                    <button class="category-pill" onclick="filterByCategory('lighting')">Đèn chiếu sáng</button>
+                    <button class="category-pill" onclick="filterByCategory('table')">Bàn</button>
+                </div>
+            </div>
+
+            <!-- Products Grid -->
+            <div class="product-grid" id="product-grid-container">
+                <!-- Dynamically loaded products will go here -->
+            </div>
+
+            <!-- Single Product Detail Panel (loaded here inline) -->
+            <div id="detail-panel-container" class="detail-panel hidden">
+                <!-- Detail content will load dynamically -->
+            </div>
+        </section>
+
+        <!-- Cart View Section -->
         <section id="cart" class="cart hidden">
-            <h2>Giỏ hàng</h2>
-            <div id="cart-items"></div>
-            <div id="cart-total" class="total"></div>
-            <button id="checkout-btn">Thanh toán</button>
+            <h2>Giỏ hàng của bạn</h2>
+            <div id="cart-items" style="max-width: 800px; margin: 0 auto;">
+                <!-- Cart items list loaded here -->
+            </div>
+            <div id="cart-empty-message" class="fallback-msg">Giỏ hàng của bạn đang trống.</div>
+            
+            <div id="cart-summary-block" class="hidden" style="max-width: 800px; margin: 0 auto;">
+                <div class="cart-total-row">
+                    <span>Tổng cộng:</span>
+                    <span id="cart-total" style="color: var(--secondary-color);">0đ</span>
+                </div>
+                <button id="checkout-btn" onclick="showSection('checkout')">Tiến hành thanh toán</button>
+            </div>
         </section>
 
+        <!-- Checkout View Section -->
         <section id="checkout" class="checkout hidden">
-            <h2>Thanh toán</h2>
-            <form id="checkout-form"></form>
+            <h2>Xác nhận đơn hàng</h2>
+            <form id="checkout-form" onsubmit="handleCheckoutSubmit(event)">
+                <h3 style="font-size: 1.3rem; margin-bottom: 1.5rem; font-weight: 800; border-bottom: 1px solid var(--border-color); padding-bottom: 0.5rem;">Thông tin giao hàng</h3>
+                
+                <div class="form-group">
+                    <label for="shipping-name">Họ và tên *</label>
+                    <input type="text" id="shipping-name" required placeholder="Nguyễn Văn A">
+                </div>
+
+                <div class="form-group">
+                    <label for="shipping-phone">Số điện thoại *</label>
+                    <input type="tel" id="shipping-phone" required placeholder="0901234567">
+                </div>
+
+                <div class="form-group">
+                    <label for="shipping-email">Email nhận hóa đơn *</label>
+                    <input type="email" id="shipping-email" required placeholder="nva@example.com">
+                </div>
+
+                <div class="form-group">
+                    <label for="shipping-address">Địa chỉ nhận hàng *</label>
+                    <input type="text" id="shipping-address" required placeholder="123 Đường Nguyễn Huệ, Quận 1, TP. Hồ Chí Minh">
+                </div>
+
+                <div class="form-group">
+                    <label for="payment-method">Phương thức thanh toán *</label>
+                    <select id="payment-method">
+                        <option value="cod">Thanh toán khi nhận hàng (COD)</option>
+                        <option value="bank">Chuyển khoản ngân hàng</option>
+                        <option value="card">Thẻ tín dụng / Thẻ ghi nợ</option>
+                    </select>
+                </div>
+
+                <div style="margin: 2rem 0 1.5rem; padding: 1.25rem; background: var(--surface-color); border-radius: 12px; border: 1px solid var(--border-color);">
+                    <div style="display: flex; justify-content: space-between; font-weight: bold; font-size: 1.1rem;">
+                        <span>Tổng hóa đơn thanh toán:</span>
+                        <span id="checkout-total-price" style="color: var(--secondary-color);">0đ</span>
+                    </div>
+                </div>
+
+                <button type="submit" class="submit-btn">Đặt hàng hỏa tốc</button>
+            </form>
         </section>
 
+        <!-- Account / Order History Section -->
+        <section id="account" class="account hidden">
+            <div class="page-shell" style="padding: 0;">
+                <div class="page-header">
+                    <h1>Hồ sơ tài khoản</h1>
+                    <p>Quản lý thông tin cá nhân và kiểm tra lịch sử đặt hàng của bạn tại Giga.</p>
+                </div>
+
+                <!-- Registration / Login Trigger if not logged in -->
+                <div id="auth-section">
+                    <h3>Khám phá ưu đãi thành viên Giga</h3>
+                    <p>Đăng nhập để lưu lịch sử đơn hàng, địa chỉ nhận hàng và nhận đặc quyền giảm giá 10% cho thành viên mới.</p>
+                    <div style="display: flex; justify-content: center; gap: 1rem; flex-wrap: wrap;">
+                        <button id="login-btn" onclick="simulateAuth(true)">Đăng nhập thử nghiệm</button>
+                        <button id="register-btn" onclick="simulateAuth(false)">Đăng ký nhanh</button>
+                    </div>
+                </div>
+
+                <!-- Profile Dashboard (visible after auth) -->
+                <div id="profile-dashboard" class="layout hidden">
+                    <div class="panel">
+                        <h3 style="font-size: 1.4rem; margin-bottom: 1.5rem; font-weight: 800;">Thông tin cá nhân</h3>
+                        <div class="profile-summary">
+                            <div class="field-group">
+                                <div class="field">
+                                    <label>Họ và tên thành viên</label>
+                                    <input type="text" id="profile-name" value="Khách hàng Danh dự">
+                                </div>
+                                <div class="field">
+                                    <label>Địa chỉ email</label>
+                                    <input type="email" id="profile-email" value="vip-customer@giga.com">
+                                </div>
+                                <div class="field">
+                                    <label>Địa chỉ giao hàng mặc định</label>
+                                    <textarea id="profile-address">Bạch Đằng, Quận Bình Thạnh, TP. Hồ Chí Minh</textarea>
+                                </div>
+                            </div>
+                            <div class="profile-actions">
+                                <button class="btn btn-primary" onclick="saveProfile()">Lưu thay đổi</button>
+                                <button class="btn btn-logout" onclick="logoutProfile()">Đăng xuất</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="panel">
+                        <h3 style="font-size: 1.4rem; margin-bottom: 1.5rem; font-weight: 800;">Lịch sử đơn hàng</h3>
+                        <div id="order-history-list" class="order-list">
+                            <!-- Orders will load dynamically -->
+                        </div>
+                        <div id="order-empty-message" class="fallback-msg">Bạn chưa thực hiện đơn hàng nào.</div>
+                    </div>
+                </div>
+
+            </div>
+        </section>
     </main>
 
+    <!-- Chatbot Widget -->
+    <div class="chatbot-widget">
+        <!-- Chatbot Button -->
+        <button class="chatbot-btn" id="chatbot-toggle-btn" aria-label="Mở cửa sổ trò chuyện">
+            <!-- Chatbot SVG icon -->
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+        </button>
+
+        <!-- Chatbot Window -->
+        <div class="chatbot-window hidden" id="chatbot-window-panel">
+            <!-- Chatbot Header -->
+            <div class="chatbot-header">
+                <div class="chatbot-title">
+                    <h3>Trợ lý ảo Giga</h3>
+                    <p>Hỗ trợ trực tuyến 24/7</p>
+                </div>
+                <div class="chatbot-header-actions">
+                    <button class="chatbot-header-btn" title="Xóa lịch sử tin nhắn" onclick="clearChat()">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--text-secondary)" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+                    </button>
+                    <button class="chatbot-close" id="chatbot-close-btn" aria-label="Đóng chat">&times;</button>
+                </div>
+            </div>
+
+            <!-- Message Area -->
+            <div class="chatbot-messages" id="chatbot-message-container">
+                <!-- Welcome Bot Message -->
+                <div class="chat-message bot-message">
+                    <div class="message-content">
+                        <p>Xin chào! Tôi là Trợ lý ảo Giga. Tôi có thể giúp bạn tìm kiếm đồ gỗ trang trí sang trọng, kiểm tra thông tin đơn hàng hoặc tặng bạn mã giảm giá đặc quyền. Bạn cần hỗ trợ gì hôm nay?</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Simulated Voice Recording overlay -->
+            <div class="voice-recording hidden" id="voice-recording-overlay">
+                <span class="recording-dot"></span>
+                <span id="recording-time">00:00</span>
+                <span style="flex-grow: 1; color: var(--text-secondary); font-size: 0.85rem; font-style: italic;">Đang thu âm...</span>
+                <button class="voice-action-btn" onclick="cancelVoiceRecording()" style="color: #f53d2d;">Hủy</button>
+                <button class="voice-action-btn" onclick="sendVoiceRecording()" style="color: var(--secondary-color);">Gửi</button>
+            </div>
+
+            <!-- Chatbot Input Controls -->
+            <div class="chatbot-input-area">
+                <div class="input-actions">
+                    <button class="action-btn" title="Gửi ảnh (mẫu sản phẩm)" onclick="simulateSendImage()">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></svg>
+                    </button>
+                    <button class="action-btn" title="Thu âm giọng nói" id="voice-record-btn" onclick="toggleVoiceRecording()">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"></path><path d="M19 10v2a7 7 0 0 1-14 0v-2"></path><line x1="12" y1="19" x2="12" y2="23"></line><line x1="8" y1="23" x2="16" y2="23"></line></svg>
+                    </button>
+                </div>
+                <div class="input-group">
+                    <input type="text" class="chatbot-input" id="chatbot-text-input" placeholder="Nhập câu hỏi của bạn ở đây..." onkeydown="handleChatKeyDown(event)">
+                    <button class="send-btn" onclick="sendChatMessage()" aria-label="Gửi tin nhắn">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Page Footer -->
     <footer>
-        <p>&copy; 2023 Giga. Tất cả quyền được bảo lưu.</p>
+        <p>&copy; 2026 Giga E-Commerce. Tất cả quyền được bảo lưu. Thiết kế theo phong cách Cream & Minimalist.</p>
     </footer>
 
-    <script defer src="main.js"></script>
-    <script defer src="chatbot.js"></script>
+    <!-- App Logic Scripts -->
+    <script src="main.js" defer></script>
+    <script src="chatbot.js" defer></script>
 </body>
 </html>

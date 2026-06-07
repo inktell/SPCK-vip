@@ -1,173 +1,113 @@
-const detailContainer = document.getElementById('product-detail');
-const query = new URLSearchParams(window.location.search);
-const productId = query.get('id');
+﻿/**
+ * 1. Cấu hình API (Đồng bộ với index.js)
+ */
+const CONFIG = {
+    API_KEY: '99adcc6dbemsh74b88da359692d8p13ac35jsn5de5b4faeea7',
+    API_HOST: 'lazada-api.p.rapidapi.com'
+};
 
-const API_BASE = 'http://localhost:3000';
+document.addEventListener('DOMContentLoaded', () => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const productId = urlParams.get('id');
 
-const sampleProducts = [
-  { id: 'sample-1', name: 'Giga Ultra Watch', price: 1290000, image: 'https://placehold.co/400x300?text=Ultra+Watch', description: 'Đồng hồ thông minh cao cấp phiên bản Giga Ultra.', category: 'Đồng hồ' },
-  { id: 'sample-2', name: 'Giga Flash Earbuds', price: 799000, image: 'https://placehold.co/400x300?text=Flash+Earbuds', description: 'Tai nghe không dây âm thanh sống động, độ trễ thấp.', category: 'Âm thanh' },
-  { id: 'sample-3', name: 'Giga Speed Backpack', price: 499000, image: 'https://placehold.co/400x300?text=Speed+Backpack', description: 'Balo chống nước phong cách thể thao, năng động.', category: 'Phụ kiện' },
-  { id: 'sample-4', name: 'Giga Pro Mouse', price: 299000, image: 'https://placehold.co/400x300?text=Pro+Mouse', description: 'Chuột máy tính công thái học siêu nhạy.', category: 'Thiết bị' }
-];
-
-function toNumberPrice(value) {
-  if (typeof value === 'number') return value;
-  if (typeof value === 'string') {
-    const n = Number(value.replace(/[^\d.-]/g, ''));
-    return Number.isFinite(n) ? n : 0;
-  }
-  if (value && typeof value === 'object') {
-    return toNumberPrice(
-      value.current_price ?? value.price ?? value.min_price ?? value.sale_price ?? value.final_price ?? 0
-    );
-  }
-  return 0;
-}
-
-function getProductImage(product) {
-  const fallbackImage = 'https://placehold.co/400x400?text=No+Image';
-  if (!product) return fallbackImage;
-
-  const candidates = [product.image, product.main_image, product.thumbnail, product.image_url, product.pic];
-  for (const img of candidates) {
-    if (typeof img === 'string' && img.trim()) return img;
-  }
-
-  const arrays = [product.images, product.item_images, product.image_urls];
-  for (const arr of arrays) {
-    if (Array.isArray(arr) && arr.length) {
-      const first = arr[0];
-      if (typeof first === 'string' && first.trim()) return first;
-      if (first && typeof first.url === 'string' && first.url.trim()) return first.url;
+    // Nâng cao tính năng: Kiểm tra ID trước khi gọi API
+    if (productId && productId !== 'undefined' && productId !== 'null') {
+        fetchProductDetail(productId);
+    } else {
+        console.warn("Không tìm thấy ID sản phẩm, đang hiển thị sản phẩm mẫu.");
+        loadLocalProduct(); 
     }
-  }
-  return fallbackImage;
+});
+
+/**
+ * 2. Gọi API lấy chi tiết sản phẩm
+ */
+async function fetchProductDetail(itemId) {
+    const url = `https://lazada-api.p.rapidapi.com/lazada/item/detail?itemId=${itemId}&site=vn`;
+    
+    try {
+        const response = await fetch(url, {
+            method: 'GET',
+            headers: {
+                'x-rapidapi-key': CONFIG.API_KEY,
+                'x-rapidapi-host': CONFIG.API_HOST
+            }
+        });
+
+        if (!response.ok) throw new Error("Lỗi kết nối API");
+
+        const result = await response.json();
+        
+        // Mở rộng danh mục: Xử lý dữ liệu linh hoạt từ API
+        const data = result.data || result.item || result;
+        
+        if (data && (data.title || data.name)) {
+            renderProduct(data);
+        } else {
+            throw new Error("Sản phẩm không tồn tại (404)");
+        }
+
+    } catch (error) {
+        console.error("Lỗi:", error.message);
+        loadLocalProduct(); // Cải thiện trải nghiệm: Luôn có dữ liệu dự phòng
+    }
 }
 
-function normalizeProduct(raw, fallbackId) {
-  return {
-    id: String(raw?.id ?? raw?.item_id ?? raw?.sku ?? fallbackId),
-    name: String(raw?.name ?? raw?.title ?? 'Sản phẩm Lazada'),
-    price: toNumberPrice(raw?.price),
-    image: getProductImage(raw),
-    category: raw?.category || raw?.cat_name || 'Sản phẩm',
-    description: raw?.description || raw?.desc || 'Sản phẩm từ Lazada API.',
-  };
+/**
+ * 3. Hiển thị dữ liệu lên giao diện (Khớp với HTML của bạn)
+ */
+function renderProduct(data) {
+    // Sửa lỗi hiển thị tên sản phẩm thay vì ID
+    const name = data.title || data.name || "Sản phẩm ShopInk";
+    document.getElementById('productTitle').innerText = name;
+    document.getElementById('breadcrumbActive').innerText = name;
+
+    // Hiển thị giá (Ưu tiên priceShow từ API hoặc format số)
+    const price = data.priceShow || (data.price ? new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(data.price) : "250.000đ");
+    document.getElementById('currentPrice').innerText = price;
+
+    // Hiển thị hình ảnh
+    const imgUrl = (data.images && data.images.length > 0) ? data.images[0] : (data.image || "https://placehold.co/600x600?text=ShopInk");
+    document.getElementById('mainImg').src = imgUrl;
+
+    // Cải thiện hậu cần: Thêm thông tin giao hàng tự động
+    const deliveryDate = new Date();
+    deliveryDate.setDate(deliveryDate.getDate() + 3); // Dự kiến 3 ngày sau
+    
+    const descPane = document.getElementById('desc-pane');
+    if (descPane) {
+        descPane.innerHTML = `
+            <div class="mb-4">
+                ${data.description || "Sản phẩm văn phòng phẩm chất lượng cao, mực in sắc nét, bền màu."}
+            </div>
+            <div class="card bg-light border-0 p-3 mt-3">
+                <h6 class="fw-bold text-primary"><i class="bi bi-truck"></i> Mạng lưới hậu cần ShopInk</h6>
+                <ul class="list-unstyled small mb-0">
+                    <li><i class="bi bi-geo-alt me-2"></i>Kho hàng: Quận 1, TP. Hồ Chí Minh</li>
+                    <li><i class="bi bi-calendar-check me-2"></i>Dự kiến nhận hàng: <strong>${deliveryDate.toLocaleDateString('vi-VN')}</strong></li>
+                    <li><i class="bi bi-box-seam me-2"></i>Tình trạng: Mới 100% - Nguyên seal</li>
+                </ul>
+            </div>
+        `;
+    }
 }
 
-function getCacheProducts() {
-  try {
-    const cached = localStorage.getItem('giga_products_cache') || sessionStorage.getItem('giga_products_cache');
-    return cached ? JSON.parse(cached) : [];
-  } catch {
-    return [];
-  }
-}
-
-async function fetchProductFromApi(id) {
-  try {
-    const response = await fetch(`${API_BASE}/api/products/${encodeURIComponent(id)}`);
-    if (!response.ok) return null;
-    const product = await response.json();
-    return normalizeProduct(product, id);
-  } catch {
-    return null;
-  }
-}
-
-async function findProductById(id) {
-  const normalizedId = String(id || '').trim();
-  if (!normalizedId) return null;
-
-  const cache = getCacheProducts().map((item, index) => normalizeProduct(item, index + 1));
-  const fromCache = cache.find((item) => String(item.id) === normalizedId);
-  if (fromCache) return fromCache;
-
-  const fromSample = sampleProducts.find((item) => String(item.id) === normalizedId);
-  if (fromSample) return fromSample;
-
-  if (/^[0-9]+$/.test(normalizedId)) {
-    const apiProduct = await fetchProductFromApi(normalizedId);
-    if (apiProduct) return apiProduct;
-  }
-
-  try {
-    const response = await fetch(`${API_BASE}/api/lazada?keyword=laptop`);
-    if (!response.ok) return null;
-    const data = await response.json();
-    const rawProducts = data?.data?.items || data?.result?.items || data?.items || [];
-    const normalized = Array.isArray(rawProducts)
-      ? rawProducts.map((item, index) => normalizeProduct(item, index + 1))
-      : [];
-    return normalized.find((item) => String(item.id) === normalizedId) || null;
-  } catch {
-    return null;
-  }
-}
-
-async function loadProduct() {
-  if (!detailContainer) return;
-
-  if (!productId) {
-    detailContainer.innerHTML = '<p style="text-align:center; padding: 2rem;">Không tìm thấy mã sản phẩm.</p>';
-    return;
-  }
-
-  detailContainer.innerHTML = '<p style="text-align:center; padding:2rem;">Đang tải chi tiết sản phẩm...</p>';
-
-  const product = await findProductById(productId);
-
-  if (!product) {
-    detailContainer.innerHTML = '<p style="text-align:center; padding: 2rem; color: red;">Không tìm thấy sản phẩm.</p>';
-    return;
-  }
-
-  renderProduct(product);
-}
-
-function renderProduct(product) {
-  detailContainer.innerHTML = `
-    <div class="detail-card" style="display: flex; gap: 30px; padding: 20px; background: var(--surface-color); border-radius: 8px; flex-wrap: wrap;">
-      <img src="${product.image}" alt="${product.name}" style="width:100%; max-width:420px; height:auto; object-fit: cover; border-radius: 12px;" onerror="this.src='https://placehold.co/400x400?text=No+Image'">
-      <div class="detail-content" style="flex: 1; min-width: 280px;">
-        <h1 style="font-size: 2rem; margin-bottom: 12px;">${product.name}</h1>
-        <p style="color: var(--text-secondary); margin-bottom: 16px;">Danh mục: ${product.category || 'Đang cập nhật'}</p>
-        <p style="font-size: 1.8rem; font-weight: 700; color: var(--secondary-color); margin-bottom: 20px;">${Number(product.price || 0).toLocaleString('vi-VN')} VND</p>
-        <div style="margin-bottom: 22px;">
-          <h4 style="margin-bottom: 8px;">Mô tả sản phẩm:</h4>
-          <p style="line-height: 1.75; color: var(--text-secondary);">${product.description || 'Không có mô tả.'}</p>
-        </div>
-        <div style="display: flex; flex-wrap: wrap; gap: 15px; align-items: center;">
-          <button id="add-to-cart-detail" style="padding: 12px 22px; background: var(--secondary-color); color: #fff; border: none; border-radius: 14px; cursor: pointer; font-weight: 700;">Thêm vào giỏ</button>
-          <a class="detail-link" href="order.html" style="padding: 12px 22px; background: var(--primary-color); color: #1a1a1a; text-decoration: none; border-radius: 14px; font-weight: 700;">Xem giỏ hàng</a>
-          <a class="detail-link" href="index.html#products" style="padding: 12px 22px; background: transparent; border: 1px solid var(--border-color); color: var(--text-color); text-decoration: none; border-radius: 14px;">Quay lại sản phẩm</a>
-        </div>
-      </div>
-    </div>
-  `;
-
-  document.getElementById('add-to-cart-detail')?.addEventListener('click', () => addToCartDetail(product));
-}
-
-function addToCartDetail(product) {
-  const cart = JSON.parse(localStorage.getItem('cart')) || [];
-  const existing = cart.find((item) => String(item.id) === String(product.id));
-
-  if (existing) {
-    existing.quantity += 1;
-  } else {
-    cart.push({
-      id: String(product.id),
-      name: product.name,
-      price: Number(product.price || 0),
-      image: product.image,
-      quantity: 1,
+/**
+ * 4. Dữ liệu dự phòng (Mở rộng danh mục nội bộ)
+ */
+function loadLocalProduct() {
+    renderProduct({
+        title: "Combo Mực In & Giấy Vẽ ShopInk Premium",
+        priceShow: "450.000đ",
+        description: "Bộ sản phẩm đặc biệt dành cho họa sĩ và kiến trúc sư, bao gồm mực kháng nước và giấy định lượng 300gsm.",
+        image: "https://placehold.co/600x600/0d6efd/fff?text=ShopInk+Premium+Combo"
     });
-  }
-
-  localStorage.setItem('cart', JSON.stringify(cart));
-  alert(`Đã thêm "${product.name}" vào giỏ hàng thành công!`);
 }
 
-window.addEventListener('DOMContentLoaded', loadProduct);
+/**
+ * 5. Tính năng giỏ hàng đơn giản
+ */
+function addToCart() {
+    const name = document.getElementById('productTitle').innerText;
+    alert(`Đã thêm "${name}" vào giỏ hàng!`);
+}
