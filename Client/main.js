@@ -1,86 +1,14 @@
 // Giga E-Commerce App Logic (main.js)
 
-// 1. Dữ liệu sản phẩm mẫu (Mock Product Database)
-const PRODUCTS = [
-    {
-        id: "chair-lounge",
-        name: "Ghế Bành Lounge Bắc Âu",
-        category: "chair",
-        price: 4500000,
-        oldPrice: 5200000,
-        image: "images/chair.png",
-        rating: 4.8,
-        reviewsCount: 12,
-        description: "Ghế thư giãn với chất liệu gỗ tần bì cao cấp và đệm bọc vải lanh tự nhiên nhập khẩu. Thiết kế công thái học mang lại tư thế ngồi dễ chịu tối đa cho phòng khách hoặc phòng đọc sách của bạn.",
-        options: {
-            colors: ["Kem Cát", "Xám Nhạt", "Nâu Đất"],
-            sizes: ["Tiêu Chuẩn"]
-        },
-        reviews: [
-            { user: "Trần Minh H.", rating: 5, date: "02/06/2026", title: "Rất ưng ý", content: "Ghế ngồi êm, độ nghiêng vừa phải. Gỗ gia công rất mịn và chắc chắn. Đóng gói cẩn thận." },
-            { user: "Nguyễn Hương G.", rating: 4, date: "28/05/2026", title: "Màu kem rất sang", content: "Đúng chuẩn màu kem Bắc Âu tôi tìm kiếm. Giao hàng hỏa tốc trong 2 giờ tại Sài Gòn." }
-        ]
-    },
-    {
-        id: "sofa-cream",
-        name: "Sofa Vải Nỉ Cream Luxury",
-        category: "sofa",
-        price: 15800000,
-        oldPrice: 18500000,
-        image: "images/sofa.png",
-        rating: 4.9,
-        reviewsCount: 8,
-        description: "Sofa băng dài thiết kế bo cong mềm mại (curved style) thời thượng. Đệm mút cao cấp chống xẹp lún và hệ lò xo túi đàn hồi cao, kết hợp khung xương sồi tự nhiên chống mối mọt.",
-        options: {
-            colors: ["Trắng Sữa", "Beige Ấm"],
-            sizes: ["Băng Đôi (1.8m)", "Băng Ba (2.2m)"]
-        },
-        reviews: [
-            { user: "Lê Hoàng N.", rating: 5, date: "05/06/2026", title: "Sản phẩm đẳng cấp", content: "Đệm sofa ngồi rất thích, không bị lún sâu. Thiết kế bo góc nhìn phòng khách sang hẳn lên." }
-        ]
-    },
-    {
-        id: "lamp-brass",
-        name: "Đèn Bàn Brass Dome Tối Giản",
-        category: "lighting",
-        price: 1850000,
-        oldPrice: 2400000,
-        image: "images/lamp.png",
-        rating: 4.7,
-        reviewsCount: 24,
-        description: "Đèn chụp đồng thau nguyên bản cao cấp. Bề mặt kim loại được chải xước nghệ thuật, tạo ra chao đèn dạng vòm tối giản khuếch tán ánh sáng vàng ấm áp dịu nhẹ cho góc làm việc.",
-        options: {
-            colors: ["Đồng Xước Vintage", "Vàng Gold Bóng"],
-            sizes: ["M (Cao 35cm)", "L (Cao 48cm)"]
-        },
-        reviews: [
-            { user: "Phạm Quốc B.", rating: 5, date: "01/06/2026", title: "Đẹp xuất sắc", content: "Đèn cầm nặng tay, chất liệu đồng thau thật xịn sò. Đặt trên tủ đầu giường nhìn cực sang trọng." }
-        ]
-    },
-    {
-        id: "table-oak",
-        name: "Bàn Cafe Oak Minimalist",
-        category: "table",
-        price: 3200000,
-        oldPrice: 3900000,
-        image: "images/table.png",
-        rating: 4.8,
-        reviewsCount: 15,
-        description: "Bàn trà tròn tinh tế mặt gỗ sồi tự nhiên vân gỗ sắc nét. Mặt bàn phủ lớp bảo vệ bóng mờ chống thấm nước và trầy xước, chân gỗ tự nhiên tiện tròn thuôn gọn phong cách Retro.",
-        options: {
-            colors: ["Sồi Tự Nhiên", "Sồi Màu Óc Chó (Walnut)"],
-            sizes: ["Đường kính 60cm", "Đường kính 80cm"]
-        },
-        reviews: [
-            { user: "Vũ Khánh L.", rating: 4, date: "03/06/2026", title: "Nhỏ gọn, cứng cáp", content: "Bàn lắp ráp dễ dàng, khớp nối khít. Dễ lau chùi khi đổ nước trà ra." }
-        ]
-    }
-];
+// 1. Dữ liệu sản phẩm (ưu tiên API RapidAPI)
+const API_BASE = "http://localhost:3000";
+const CART_STORAGE_KEY = "giga_cart";
+let PRODUCTS = [];
 
 // 2. Trạng thái ứng dụng (Application State)
 let currentCategory = "all";
 let searchQuery = "";
-let cart = [];
+let cart = loadCart();
 let orders = [];
 let isLoggedIn = false;
 let userProfile = {
@@ -89,10 +17,80 @@ let userProfile = {
     address: "Bạch Đằng, Quận Bình Thạnh, TP. Hồ Chí Minh"
 };
 
+function toNumberPrice(value) {
+    if (typeof value === "number") return value;
+    if (typeof value === "string") {
+        const parsed = Number(value.replace(/[^\d.-]/g, ""));
+        return Number.isFinite(parsed) ? parsed : 0;
+    }
+    if (value && typeof value === "object") {
+        const candidates = [value.current_price, value.price, value.min_price, value.sale_price, value.final_price];
+        for (const candidate of candidates) {
+            const parsed = toNumberPrice(candidate);
+            if (parsed) return parsed;
+        }
+    }
+    return 0;
+}
+
+function getProductImage(product) {
+    const fallback = "https://placehold.co/600x400/fff9f3/1a1a1a?text=No+Image";
+    if (!product) return fallback;
+    const candidates = [product.image, product.main_image, product.thumbnail, product.image_url, product.pic];
+    for (const candidate of candidates) {
+        if (typeof candidate === "string" && candidate.trim()) return candidate;
+    }
+
+    const arrays = [product.images, product.item_images, product.image_urls];
+    for (const array of arrays) {
+        if (Array.isArray(array) && array.length > 0) {
+            const first = array[0];
+            if (typeof first === "string" && first.trim()) return first;
+            if (first && typeof first.url === "string" && first.url.trim()) return first.url;
+        }
+    }
+
+    return fallback;
+}
+
+function normalizeProduct(raw, fallbackId = "") {
+    const id = String(raw?.item_id ?? raw?.id ?? raw?.sku ?? fallbackId);
+    return {
+        id,
+        name: String(raw?.title ?? raw?.name ?? "Sản phẩm Lazada"),
+        category: String(raw?.category || raw?.cat_name || "general"),
+        price: toNumberPrice(raw?.price ?? raw?.sale_price ?? raw?.current_price ?? raw?.min_price ?? raw?.price_info?.sale_price),
+        oldPrice: toNumberPrice(raw?.original_price ?? raw?.oldPrice ?? raw?.price_info?.original_price ?? raw?.price_info?.price ?? raw?.price ?? 0),
+        image: getProductImage(raw),
+        rating: Number(raw?.rating || raw?.star || 4.8),
+        reviewsCount: Number(raw?.reviews_count || raw?.sold_count || 0),
+        description: String(raw?.description || raw?.desc || "Sản phẩm chất lượng cao từ API."),
+        options: {
+            colors: [raw?.color || "Mặc định"],
+            sizes: [raw?.size || "Mặc định"]
+        }
+    };
+}
+
+function loadCart() {
+    try {
+        const savedCart = localStorage.getItem(CART_STORAGE_KEY);
+        return savedCart ? JSON.parse(savedCart) : [];
+    } catch (error) {
+        console.warn("Không đọc được giỏ hàng:", error);
+        return [];
+    }
+}
+
+function persistCart() {
+    localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(cart));
+    updateCartBadge();
+}
+
 // 3. Khởi chạy khi tài liệu sẵn sàng (Initialization)
 document.addEventListener("DOMContentLoaded", () => {
-    // Render sản phẩm lúc đầu
-    renderProducts();
+    // Tải sản phẩm từ API lúc đầu
+    loadProductsFromApi();
     updateCartBadge();
     
     // Gắn sự kiện lắng nghe tìm kiếm
@@ -105,11 +103,8 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     // Đọc giỏ hàng và đơn hàng từ LocalStorage nếu có
-    const savedCart = localStorage.getItem("giga_cart");
-    if (savedCart) {
-        cart = JSON.parse(savedCart);
-        updateCartBadge();
-    }
+    cart = loadCart();
+    updateCartBadge();
     
     const savedOrders = localStorage.getItem("giga_orders");
     if (savedOrders) {
@@ -124,15 +119,23 @@ document.addEventListener("DOMContentLoaded", () => {
         document.getElementById("profile-address").value = userProfile.address;
     }
 
-    const savedAuth = localStorage.getItem("giga_auth");
-    if (savedAuth === "true") {
-        isLoggedIn = true;
-    }
+    const savedEmail = localStorage.getItem("giga_current_user_email") || sessionStorage.getItem("giga_current_user_email");
+    const savedRole = localStorage.getItem("giga_current_user_role") || sessionStorage.getItem("giga_current_user_role");
+    isLoggedIn = Boolean(savedEmail || savedRole);
     toggleAuthUI();
 });
 
 // 4. Bộ định tuyến hiển thị View (Local Routing)
+function goToProfilePage() {
+    window.location.href = "profile.html";
+}
+
 function showSection(sectionId) {
+    if (sectionId === "account") {
+        goToProfilePage();
+        return;
+    }
+
     const sections = ["home", "shop", "cart", "checkout", "account"];
     sections.forEach(id => {
         const sectionEl = document.getElementById(id);
@@ -161,8 +164,10 @@ function showSection(sectionId) {
     // Cập nhật giao diện riêng biệt cho từng trang khi mở
     if (sectionId === "shop") {
         renderProducts();
-        // Ẩn panel chi tiết khi về lại shop
-        document.getElementById("detail-panel-container").classList.add("hidden");
+        const detailContainer = document.getElementById("detail-panel-container");
+        if (detailContainer) {
+            detailContainer.classList.add("hidden");
+        }
     } else if (sectionId === "cart") {
         renderCart();
     } else if (sectionId === "checkout") {
@@ -174,12 +179,43 @@ function showSection(sectionId) {
 
 // Format giá tiền Việt Nam
 function formatPrice(number) {
-    return number.toLocaleString('vi-VN') + 'đ';
+    const safeNumber = Number(number || 0);
+    return safeNumber.toLocaleString('vi-VN') + 'đ';
+}
+
+async function loadProductsFromApi() {
+    try {
+        const response = await fetch(`${API_BASE}/api/lazada?keyword=laptop`, { cache: "no-store" });
+        if (!response.ok) throw new Error("Không tải được danh sách sản phẩm");
+
+        const payload = await response.json();
+        const items = Array.isArray(payload?.data?.items)
+            ? payload.data.items
+            : Array.isArray(payload?.items)
+                ? payload.items
+                : Array.isArray(payload?.products)
+                    ? payload.products
+                    : Array.isArray(payload)
+                        ? payload
+                        : [];
+
+        if (items.length === 0) {
+            throw new Error("Danh sách sản phẩm rỗng");
+        }
+
+        PRODUCTS = items.map((product, index) => normalizeProduct(product, String(index + 1)));
+        renderProducts();
+    } catch (error) {
+        console.warn("API products unavailable, using empty state:", error.message || error);
+        PRODUCTS = [];
+        renderProducts();
+    }
 }
 
 // 5. Quản lý Hiển thị và Lọc Sản phẩm (Products Display & Filter)
 function renderProducts() {
     const gridContainer = document.getElementById("product-grid-container");
+    const resultSummary = document.getElementById("result-summary");
     if (!gridContainer) return;
 
     gridContainer.innerHTML = "";
@@ -192,12 +228,17 @@ function renderProducts() {
         return matchesCategory && matchesSearch;
     });
 
+    if (resultSummary) {
+        resultSummary.textContent = "";
+    }
+
     if (filtered.length === 0) {
         gridContainer.innerHTML = `<p class="fallback-msg" style="grid-column: 1/-1;">Không tìm thấy sản phẩm nào phù hợp.</p>`;
         return;
     }
 
     filtered.forEach(product => {
+        const oldPrice = product.oldPrice || product.original_price || Math.round(Number(product.price || 0) * 1.15);
         const card = document.createElement("div");
         card.className = "product-card";
         card.innerHTML = `
@@ -206,21 +247,21 @@ function renderProducts() {
             </div>
             <div class="product-info">
                 <div>
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
-                        <span style="font-size: 0.85rem; color: var(--text-secondary); text-transform: uppercase; font-weight: 600;">${product.category}</span>
-                        <span style="font-size: 0.85rem; color: var(--secondary-color); font-weight: bold;">★ ${product.rating}</span>
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem; gap: 0.5rem; flex-wrap: wrap;">
+                        <span class="product-tag">${product.category}</span>
+                        <span style="font-size: 0.85rem; color: var(--secondary-color); font-weight: bold;">★ ${product.rating || 4.8}</span>
                     </div>
                     <h3 style="cursor: pointer;" onclick="showProductDetail('${product.id}')">${product.name}</h3>
-                    <p>${product.description.substring(0, 85)}...</p>
+                    <p>${(product.description || "Sản phẩm chất lượng cao").substring(0, 85)}...</p>
                 </div>
                 <div>
                     <div class="product-price">
-                        <span style="text-decoration: line-through; font-size: 0.95rem; color: var(--text-secondary); margin-right: 0.5rem;">${formatPrice(product.oldPrice)}</span>
+                        <span style="text-decoration: line-through; font-size: 0.95rem; color: var(--text-secondary); margin-right: 0.5rem;">${formatPrice(oldPrice)}</span>
                         <span>${formatPrice(product.price)}</span>
                     </div>
                     <div class="card-actions">
                         <button class="add-to-cart" onclick="quickAddToCart('${product.id}')">Thêm vào giỏ</button>
-                        <a href="#" class="detail-link" onclick="showProductDetail('${product.id}'); return false;">Chi tiết</a>
+                        <a href="product.html?id=${encodeURIComponent(product.id)}" class="detail-link">Chi tiết</a>
                     </div>
                 </div>
             </div>
@@ -251,117 +292,7 @@ function showProductDetail(productId) {
     const product = PRODUCTS.find(p => p.id === productId);
     if (!product) return;
 
-    const detailContainer = document.getElementById("detail-panel-container");
-    if (!detailContainer) return;
-
-    // Chọn ngẫu nhiên gợi ý (các sản phẩm khác)
-    const suggestions = PRODUCTS.filter(p => p.id !== productId).slice(0, 2);
-
-    detailContainer.innerHTML = `
-        <div class="detail-card">
-            <div class="detail-image">
-                <img src="${product.image}" alt="${product.name}" onerror="this.src='https://placehold.co/600x600/fff9f3/1a1a1a?text=${encodeURIComponent(product.name)}'">
-            </div>
-            <div class="detail-content">
-                <div class="product-category">${product.category}</div>
-                <h1>${product.name}</h1>
-                
-                <div class="product-meta">
-                    <div class="rating-badge">
-                        <span>★ ${product.rating}</span>
-                    </div>
-                    <span>(${product.reviewsCount} đánh giá từ người dùng)</span>
-                </div>
-
-                <div class="price-row">
-                    <span class="price-old">${formatPrice(product.oldPrice)}</span>
-                    <span class="price-current">${formatPrice(product.price)}</span>
-                    <span class="price-tag">Tiết kiệm ${formatPrice(product.oldPrice - product.price)}</span>
-                </div>
-
-                <p class="detail-description">${product.description}</p>
-
-                <!-- Lựa chọn cấu hình sản phẩm -->
-                <div class="product-options">
-                    <div class="option-group">
-                        <label>Màu sắc:</label>
-                        <div class="option-list" id="detail-color-list">
-                            ${product.options.colors.map((color, i) => `
-                                <button class="option-button ${i === 0 ? 'active' : ''}" onclick="selectOption(this, 'color')">${color}</button>
-                            `).join('')}
-                        </div>
-                    </div>
-
-                    <div class="option-group">
-                        <label>Kích thước:</label>
-                        <div class="option-list" id="detail-size-list">
-                            ${product.options.sizes.map((size, i) => `
-                                <button class="option-button ${i === 0 ? 'active' : ''}" onclick="selectOption(this, 'size')">${size}</button>
-                            `).join('')}
-                        </div>
-                    </div>
-                </div>
-
-                <div class="detail-actions">
-                    <button class="btn-add" onclick="addDetailedToCart('${product.id}')">Thêm Vào Giỏ Hàng</button>
-                    <button class="btn-buy" onclick="buyNowDetailed('${product.id}')">Mua Ngay Lập Tức</button>
-                </div>
-
-                <!-- Chính sách bán hàng Giga -->
-                <div class="product-policy">
-                    <div>
-                        <strong>✓ Cam kết chất lượng cao cấp</strong>
-                        <p>Bảo hành chính hãng 24 tháng cho mọi chi tiết khung gỗ và lỗi gia công cơ khí.</p>
-                    </div>
-                    <div>
-                        <strong>✓ Đổi trả linh hoạt</strong>
-                        <p>Đổi sản phẩm mới miễn phí trong vòng 7 ngày nếu không phù hợp thẩm mỹ không gian sống.</p>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Nhận xét khách hàng -->
-        <div class="product-feedback">
-            <h2>Nhận Xét Từ Khách Hàng</h2>
-            <div id="reviews-list">
-                ${product.reviews.map(rev => `
-                    <div class="review-card">
-                        <div class="review-meta">
-                            <strong style="color: var(--text-color);">${rev.user}</strong>
-                            <span style="color: var(--secondary-color);">★ ${'★'.repeat(rev.rating)}${'☆'.repeat(5 - rev.rating)}</span>
-                            <span>Ngày: ${rev.date}</span>
-                        </div>
-                        <h4 class="review-title">${rev.title}</h4>
-                        <p>${rev.content}</p>
-                    </div>
-                `).join('')}
-            </div>
-        </div>
-
-        <!-- Sản phẩm gợi ý -->
-        <div class="product-suggestions">
-            <h2>Gợi Ý Cho Không Gian Của Bạn</h2>
-            <div class="suggestion-grid">
-                ${suggestions.map(sug => `
-                    <div class="suggestion-card">
-                        <img src="${sug.image}" alt="${sug.name}" onerror="this.src='https://placehold.co/300x200/fff9f3/1a1a1a?text=${encodeURIComponent(sug.name)}'">
-                        <div class="suggestion-card-body">
-                            <strong>${sug.name}</strong>
-                            <div class="suggestion-price">${formatPrice(sug.price)}</div>
-                            <button class="btn-suggestion" onclick="showProductDetail('${sug.id}')">Xem chi tiết</button>
-                        </div>
-                    </div>
-                `).join('')}
-            </div>
-        </div>
-
-        <button class="detail-close-btn" onclick="closeProductDetail()">Đóng chi tiết</button>
-    `;
-
-    // Hiển thị panel chi tiết và cuộn đến nó
-    detailContainer.classList.remove("hidden");
-    detailContainer.scrollIntoView({ behavior: "smooth", block: "start" });
+    window.location.href = `product.html?id=${encodeURIComponent(productId)}`;
 }
 
 function selectOption(button, type) {
@@ -395,13 +326,10 @@ function quickAddToCart(productId) {
     const product = PRODUCTS.find(p => p.id === productId);
     if (!product) return;
 
-    // Chọn các tùy chọn mặc định đầu tiên
-    const defaultColor = product.options.colors[0];
-    const defaultSize = product.options.sizes[0];
+    const defaultColor = product.options?.colors?.[0] || "Mặc định";
+    const defaultSize = product.options?.sizes?.[0] || "Mặc định";
 
     addToCart(productId, defaultColor, defaultSize, 1);
-    
-    // Hiển thị thông báo nhỏ
     alert(`Đã thêm 1 x ${product.name} (${defaultColor}) vào giỏ hàng.`);
 }
 
@@ -440,8 +368,7 @@ function addToCart(productId, color, size, quantity) {
     const product = PRODUCTS.find(p => p.id === productId);
     if (!product) return;
 
-    // Tìm xem sản phẩm có cùng màu và kích cỡ đã có trong giỏ hàng chưa
-    const existingIndex = cart.findIndex(item => 
+    const existingIndex = cart.findIndex(item =>
         item.productId === productId && item.color === color && item.size === size
     );
 
@@ -451,7 +378,7 @@ function addToCart(productId, color, size, quantity) {
         cart.push({
             productId: productId,
             name: product.name,
-            price: product.price,
+            price: Number(product.price || 0),
             image: product.image,
             color: color,
             size: size,
@@ -459,18 +386,16 @@ function addToCart(productId, color, size, quantity) {
         });
     }
 
-    // Lưu vào LocalStorage
-    localStorage.setItem("giga_cart", JSON.stringify(cart));
-    updateCartBadge();
+    persistCart();
 }
 
 function changeQuantity(index, delta) {
+    if (!cart[index]) return;
     cart[index].quantity += delta;
     if (cart[index].quantity <= 0) {
         cart.splice(index, 1);
     }
-    localStorage.setItem("giga_cart", JSON.stringify(cart));
-    updateCartBadge();
+    persistCart();
     renderCart();
 }
 
@@ -579,9 +504,8 @@ function handleCheckoutSubmit(event) {
     userProfile.address = address;
     localStorage.setItem("giga_profile", JSON.stringify(userProfile));
 
-    // Bật trạng thái đã đăng nhập để hiển thị đơn hàng
-    isLoggedIn = true;
-    localStorage.setItem("giga_auth", "true");
+    // Không ghi đè trạng thái đăng nhập bằng dữ liệu mẫu nữa.
+    // Người dùng sẽ dùng trang hồ sơ thật tại profile.html.
     toggleAuthUI();
 
     // Reset checkout form
@@ -591,20 +515,9 @@ function handleCheckoutSubmit(event) {
     showSection("account");
 }
 
-// 9. Tài Khoản & Lịch Sử Đơn Hàng (Account View & Simulated Login)
-function simulateAuth(loginMode) {
-    isLoggedIn = true;
-    localStorage.setItem("giga_auth", "true");
-    
-    // Điền thông tin mặc định
-    document.getElementById("profile-name").value = userProfile.name;
-    document.getElementById("profile-email").value = userProfile.email;
-    document.getElementById("profile-address").value = userProfile.address;
-
-    toggleAuthUI();
-    renderOrderHistory();
-
-    alert(loginMode ? "Đăng nhập thử nghiệm thành công!" : "Đăng ký thành viên thành công! Bạn nhận được chiết khấu 10% cho lần mua hàng sau.");
+// 9. Tài Khoản & Lịch Sử Đơn Hàng
+function simulateAuth() {
+    window.location.href = "profile.html";
 }
 
 function toggleAuthUI() {
@@ -613,23 +526,14 @@ function toggleAuthUI() {
 
     if (!authSec || !profDash) return;
 
-    if (isLoggedIn) {
-        authSec.style.display = "none";
-        profDash.style.display = "grid";
-        
-        // Thay đổi liên kết tiêu đề tài khoản
-        const accountLink = document.getElementById("account-link");
-        if (accountLink) {
-            accountLink.innerText = "Tài khoản (Đã đăng nhập)";
-        }
-    } else {
-        authSec.style.display = "block";
-        profDash.style.display = "none";
-        
-        const accountLink = document.getElementById("account-link");
-        if (accountLink) {
-            accountLink.innerText = "Tài khoản";
-        }
+    // Luôn hiển thị CTA đăng nhập/đăng ký tại trang chủ.
+    // Trang hồ sơ thật nằm ở profile.html.
+    authSec.style.display = "block";
+    profDash.style.display = "none";
+
+    const accountLink = document.getElementById("account-link");
+    if (accountLink) {
+        accountLink.innerText = isLoggedIn ? "Tài khoản (đã đăng nhập)" : "Tài khoản";
     }
 }
 
@@ -644,9 +548,12 @@ function saveProfile() {
 
 function logoutProfile() {
     isLoggedIn = false;
-    localStorage.removeItem("giga_auth");
+    localStorage.removeItem("giga_current_user_email");
+    localStorage.removeItem("giga_current_user_role");
+    sessionStorage.removeItem("giga_current_user_email");
+    sessionStorage.removeItem("giga_current_user_role");
     toggleAuthUI();
-    alert("Đã đăng xuất khỏi tài khoản.");
+    window.location.href = "profile.html";
 }
 
 function renderOrderHistory() {

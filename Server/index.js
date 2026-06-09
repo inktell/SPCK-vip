@@ -2,7 +2,10 @@ const express = require('express');
 const cors = require('cors');
 const compression = require('compression');
 const axios = require('axios');
+const fs = require('fs');
 const path = require('path');
+const upload = require('./middleware/multer');
+const cloudinary = require('./utils/cloudinary');
 require('dotenv').config();
 
 const app = express();
@@ -36,9 +39,9 @@ const products = [
     shipping_policy: 'Miễn phí giao hàng toàn quốc từ 500.000đ. Giao nhanh 24h nội thành TP.HCM.',
     delivery_commitment: 'Giao hàng đúng hẹn trong 48h, hoàn tiền nếu trễ.',
     options: {
-      Màu: ['Đen', 'Trắng', 'Xanh'],
-      Kích cỡ: ['S', 'M', 'L'],
-      Phiên bản: ['Tiêu chuẩn', 'Pro']
+      'Màu': ['Đen', 'Trắng', 'Xanh'],
+      'Kích cỡ': ['S', 'M', 'L'],
+      'Phiên bản': ['Tiêu chuẩn', 'Pro']
     },
     suggested_products: [
       { id: 2, name: 'Giga Flash Earbuds', price: 799000, image: 'https://placehold.co/400x300?text=Flash+Earbuds' },
@@ -72,8 +75,8 @@ const products = [
     shipping_policy: 'Giao hàng tiết kiệm toàn quốc với phí giảm 50% cho đơn hàng đầu tiên.',
     delivery_commitment: 'Giao hàng trong 3-5 ngày làm việc, hỗ trợ đổi trả trong 7 ngày.',
     options: {
-      Màu: ['Đen', 'Trắng'],
-      Kết nối: ['Bluetooth 5.0', 'Bluetooth 5.3']
+      'Màu': ['Đen', 'Trắng'],
+      'Kết nối': ['Bluetooth 5.0', 'Bluetooth 5.3']
     },
     suggested_products: [
       { id: 1, name: 'Giga Ultra Watch', price: 1290000, image: 'https://placehold.co/400x300?text=Ultra+Watch' },
@@ -105,8 +108,8 @@ const products = [
     shipping_policy: 'Freeship nội thành, phí ship ngoại tỉnh chỉ 15.000đ.',
     delivery_commitment: 'Giao hàng trong 2-4 ngày, đổi trả miễn phí trong 7 ngày.',
     options: {
-      Màu: ['Đen', 'Xám'],
-      Kích thước: ['20L', '25L', '30L']
+      'Màu': ['Đen', 'Xám'],
+      'Kích thước': ['20L', '25L', '30L']
     },
     suggested_products: [
       { id: 2, name: 'Giga Flash Earbuds', price: 799000, image: 'https://placehold.co/400x300?text=Flash+Earbuds' },
@@ -138,8 +141,8 @@ const products = [
     shipping_policy: 'Giao hàng toàn quốc, có bảo hiểm vận chuyển.',
     delivery_commitment: 'Giao trong 2-3 ngày làm việc cho khu vực TP lớn.',
     options: {
-      Màu: ['Đen', 'Xám'],
-      Kiểu dáng: ['Chuột không dây', 'Chuột có dây']
+      'Màu': ['Đen', 'Xám'],
+      'Kiểu dáng': ['Chuột không dây', 'Chuột có dây']
     },
     suggested_products: [
       { id: 1, name: 'Giga Ultra Watch', price: 1290000, image: 'https://placehold.co/400x300?text=Ultra+Watch' },
@@ -161,11 +164,41 @@ app.get('/api/products', (req, res) => {
 });
 
 app.get('/api/products/:id', (req, res) => {
-  const product = products.find((item) => item.id === Number(req.params.id));
+  const product = products.find((item) => String(item.id) === String(req.params.id));
   if (!product) {
     return res.status(404).json({ error: 'Không tìm thấy sản phẩm' });
   }
   res.json(product);
+});
+
+app.post('/api/upload/image', upload.single('image'), async (req, res) => {
+  if (!req.file) {
+    return res.status(400).json({ error: 'Vui lòng gửi file hình ảnh.' });
+  }
+
+  try {
+    const result = await cloudinary.uploader.upload(req.file.path, {
+      folder: 'giga/products',
+      resource_type: 'image',
+      quality: 'auto',
+      fetch_format: 'auto',
+    });
+
+    res.json({
+      secure_url: result.secure_url,
+      public_id: result.public_id,
+      width: result.width,
+      height: result.height,
+      format: result.format,
+    });
+  } catch (error) {
+    console.error('Cloudinary upload error:', error?.message || error);
+    res.status(500).json({ error: 'Không thể upload ảnh lên Cloudinary.', detail: error?.message || error });
+  } finally {
+    if (req.file?.path) {
+      fs.unlink(req.file.path, () => {});
+    }
+  }
 });
 
 app.get('/api/lazada', async (req, res) => {
@@ -191,6 +224,35 @@ app.get('/api/lazada', async (req, res) => {
     console.error('Lazada proxy error:', error?.response?.data || error.message);
     res.status(500).json({
       error: 'Lỗi gọi Lazada API',
+      detail: error.message,
+    });
+  }
+});
+
+app.get('/api/lazada/detail', async (req, res) => {
+  const itemId = String(req.query.itemId || '').trim();
+  if (!itemId) {
+    return res.status(400).json({ error: 'Thiếu itemId' });
+  }
+
+  try {
+    const response = await axios.get('https://lazada-api.p.rapidapi.com/lazada/item/detail', {
+      params: {
+        itemId,
+        site: 'vn',
+      },
+      headers: {
+        'x-rapidapi-key': process.env.RAPID_API_KEY,
+        'x-rapidapi-host': 'lazada-api.p.rapidapi.com',
+      },
+      timeout: 15000,
+    });
+
+    res.json(response.data);
+  } catch (error) {
+    console.error('Lazada detail proxy error:', error?.response?.data || error.message);
+    res.status(500).json({
+      error: 'Lỗi gọi Lazada API chi tiết',
       detail: error.message,
     });
   }

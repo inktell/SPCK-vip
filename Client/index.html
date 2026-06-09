@@ -57,7 +57,7 @@
                 <li><a href="#" onclick="showSection('cart')" class="nav-btn" id="cart-nav-link">
                     Giỏ hàng <span id="cart-count" style="margin-left: 6px; background: var(--secondary-color); color: #fff; border-radius: 50%; padding: 2px 7px; font-size: 0.8rem; font-weight: bold;">0</span>
                 </a></li>
-                <li><a id="account-link" href="#" onclick="showSection('account')" class="nav-btn">Tài khoản</a></li>
+                <li><a id="account-link" href="profile.html" onclick="goToProfilePage(); return false;" class="nav-btn">Tài khoản</a></li>
             </ul>
         </nav>
     </header>
@@ -71,6 +71,11 @@
 
             <!-- Value / Quality Advertisement Grid -->
             <div class="page-shell" style="padding: 4rem 0 0; width: 100%; max-width: 1200px;">
+                <div class="hero-badges" aria-label="Ưu điểm nổi bật">
+                    <span>✨ Bán chạy nhất 2026</span>
+                    <span>🚚 Giao hàng trong 2 giờ</span>
+                    <span>🛡️ Bảo hành chính hãng</span>
+                </div>
                 <h2 style="font-size: 2.2rem; font-weight: 800; text-align: center; margin-bottom: 2.5rem; letter-spacing: -0.5px;">Tại sao chọn Giga?</h2>
                 <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1.5rem; text-align: left;">
                     
@@ -115,7 +120,10 @@
             
             <!-- Filters Block -->
             <div class="product-filters">
-                <input type="text" id="search-input" class="product-search" placeholder="Tìm kiếm sản phẩm...">
+                <div class="product-search-wrap">
+                    <input type="text" id="search-input" class="product-search" placeholder="Tìm kiếm sản phẩm theo tên, kiểu dáng hoặc màu sắc...">
+                    <span class="product-search-hint">Gợi ý: ghế, sofa, đèn, bàn</span>
+                </div>
                 <div class="category-filter" id="category-filter-container">
                     <button class="category-pill active" onclick="filterByCategory('all')">Tất cả</button>
                     <button class="category-pill" onclick="filterByCategory('chair')">Ghế</button>
@@ -125,15 +133,15 @@
                 </div>
             </div>
 
+            <div class="product-toolbar">
+                <p id="result-summary" class="result-summary" aria-live="polite"></p>
+            </div>
+
             <!-- Products Grid -->
             <div class="product-grid" id="product-grid-container">
                 <!-- Dynamically loaded products will go here -->
             </div>
 
-            <!-- Single Product Detail Panel (loaded here inline) -->
-            <div id="detail-panel-container" class="detail-panel hidden">
-                <!-- Detail content will load dynamically -->
-            </div>
         </section>
 
         <!-- Cart View Section -->
@@ -210,10 +218,11 @@
                 <!-- Registration / Login Trigger if not logged in -->
                 <div id="auth-section">
                     <h3>Khám phá ưu đãi thành viên Giga</h3>
-                    <p>Đăng nhập để lưu lịch sử đơn hàng, địa chỉ nhận hàng và nhận đặc quyền giảm giá 10% cho thành viên mới.</p>
+                    <p>Đăng nhập để quản lý hồ sơ thật tại trang hồ sơ của bạn, hoặc mở nhanh trang tài khoản để xem thông tin và bảo mật.</p>
                     <div style="display: flex; justify-content: center; gap: 1rem; flex-wrap: wrap;">
-                        <button id="login-btn" onclick="simulateAuth(true)">Đăng nhập thử nghiệm</button>
-                        <button id="register-btn" onclick="simulateAuth(false)">Đăng ký nhanh</button>
+                        <a href="login.html" id="login-btn" class="btn btn-primary">Đăng nhập</a>
+                        <a href="signup.html" id="register-btn" class="btn btn-secondary">Đăng ký</a>
+                        <a href="profile.html" class="btn btn-secondary">Mở hồ sơ tài khoản</a>
                     </div>
                 </div>
 

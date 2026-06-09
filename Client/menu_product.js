@@ -5,8 +5,8 @@ const firebaseConfig = {
   authDomain: "bai-3-2f0fc.firebaseapp.com",
   projectId: "bai-3-2f0fc",
   storageBucket: "bai-3-2f0fc.firebasestorage.app",
-  messagingSenderId: "300263576892",
-  appId: "1:300263576892:web:55c18b93e96985c55b3a39",
+  messagingSenderId: "300263596892",
+  appId: "1:300263596892:web:55c18b93e96985c55b3a39",
   measurementId: "G-38NJ0S7XEP"
 };
 
@@ -66,105 +66,6 @@ function hydrateProductMap(list) {
     productMap.set(String(product.id), product);
   });
 }
-
-const sampleProducts = [
-  {
-    id: 'sample-1',
-    name: 'iPhone 15 Case',
-    price: 299000,
-    image: 'https://placehold.co/400x300?text=iPhone+15+Case',
-    category: 'electronics',
-    description: 'Bao da iPhone 15 bền đẹp, chống va đập và bảo vệ toàn diện.'
-  },
-  {
-    id: 'sample-2',
-    name: 'Wireless Headset',
-    price: 890000,
-    image: 'https://placehold.co/400x300?text=Wireless+Headset',
-    category: 'electronics',
-    description: 'Tai nghe không dây chất lượng cao, âm thanh rõ nét và pin lâu.'
-  },
-  {
-    id: 'sample-3',
-    name: 'Running Shoes',
-    price: 599000,
-    image: 'https://placehold.co/400x300?text=Running+Shoes',
-    category: 'fashion',
-    description: 'Giày chạy nhẹ, thoáng khí và phù hợp cho vận động hàng ngày.'
-  },
-  {
-    id: 'sample-4',
-    name: 'Classic Backpack',
-    price: 499000,
-    image: 'https://placehold.co/400x300?text=Classic+Backpack',
-    category: 'fashion',
-    description: 'Ba lô cổ điển nhiều ngăn, tiện dụng cho đi làm và du lịch.'
-  },
-  {
-    id: 'sample-5',
-    name: 'Vitamin C Serum',
-    price: 249000,
-    image: 'https://placehold.co/400x300?text=Vitamin+C+Serum',
-    category: 'beauty',
-    description: 'Serum vitamin C dưỡng sáng, hỗ trợ cải thiện làn da toàn diện.'
-  },
-  {
-    id: 'sample-6',
-    name: 'Smartwatch',
-    price: 1290000,
-    image: 'https://placehold.co/400x300?text=Smartwatch',
-    category: 'electronics',
-    description: 'Đồng hồ thông minh tích hợp theo dõi sức khỏe và thông báo thông minh.'
-  },
-  {
-    id: 'sample-7',
-    name: 'Desk Lamp',
-    price: 399000,
-    image: 'https://placehold.co/400x300?text=Desk+Lamp',
-    category: 'home',
-    description: 'Đèn bàn LED tiết kiệm điện với ánh sáng dễ chịu và điều chỉnh linh hoạt.'
-  },
-  {
-    id: 'sample-8',
-    name: 'Storage Organizer',
-    price: 355000,
-    image: 'https://placehold.co/400x300?text=Storage+Organizer',
-    category: 'home',
-    description: 'Bộ tổ chức lưu trữ đa năng, giúp không gian ngăn nắp và gọn gàng.'
-  },
-  {
-    id: 'sample-9',
-    name: 'USB-C Charger',
-    price: 199000,
-    image: 'https://placehold.co/400x300?text=USB-C+Charger',
-    category: 'electronics',
-    description: 'Cáp sạc USB-C nhanh, tương thích với nhiều thiết bị hiện đại.'
-  },
-  {
-    id: 'sample-10',
-    name: 'Men’s Hoodie',
-    price: 449000,
-    image: 'https://placehold.co/400x300?text=Men%E2%80%99s+Hoodie',
-    category: 'fashion',
-    description: 'Áo hoodie nam thoải mái, chất liệu mềm và phù hợp mặc mọi ngày.'
-  },
-  {
-    id: 'sample-11',
-    name: 'Face Mask Pack',
-    price: 155000,
-    image: 'https://placehold.co/400x300?text=Face+Mask+Pack',
-    category: 'beauty',
-    description: 'Bộ mặt nạ dưỡng da tiện lợi, hỗ trợ làm sạch và nuôi dưỡng.'
-  },
-  {
-    id: 'sample-12',
-    name: 'Travel Mug',
-    price: 189000,
-    image: 'https://placehold.co/400x300?text=Travel+Mug',
-    category: 'home',
-    description: 'Ly giữ nhiệt tiện dụng cho việc di chuyển và thưởng thức đồ uống.'
-  }
-];
 
 function toNumberPrice(value) {
   if (typeof value === 'number') return value;
@@ -462,12 +363,11 @@ async function fetchRemoteProducts() {
   } catch (error) {
     console.warn('Load products error:', error.message || error);
     if (productList.length === 0) {
-      productList = sampleProducts;
+      productList = [];
       hydrateProductMap(productList);
-      displayProducts(sampleProducts, 'Đang hiển thị sản phẩm mẫu');
-      buildCategoryFilter(sampleProducts);
-      logCategoryDistribution(sampleProducts);
-      console.warn('Loaded fallback products because API request failed.');
+      displayProducts([], 'Không thể tải sản phẩm từ API RapidAPI lúc này.');
+      buildCategoryFilter([]);
+      logCategoryDistribution([]);
     }
   }
 }
@@ -504,7 +404,7 @@ function displayProducts(products, fallbackMessage = '') {
         <p class="product-price">${Number(product.price || 0).toLocaleString('vi-VN')} VND</p>
         <div class="card-actions">
           <button class="add-to-cart" data-id="${product.id}">Thêm vào giỏ</button>
-          <a href="product.html?id=${encodeURIComponent(product.id)}" class="detail-link">Xem chi tiết</a>
+          <a href="product.html?id=${encodeURIComponent(product.id)}" class="detail-link" data-id="${product.id}">Xem chi tiết</a>
         </div>
       </div>
     `;
@@ -520,6 +420,15 @@ productGrid?.addEventListener('click', (event) => {
   if (addButton) {
     addToCart(String(addButton.dataset.id));
     return;
+  }
+
+  const detailLink = event.target.closest('.detail-link');
+  if (detailLink) {
+    event.preventDefault();
+    const productId = String(detailLink.dataset.id || detailLink.getAttribute('href').split('id=')[1] || '');
+    const product = getProductById(productId);
+    sessionStorage.setItem('giga_selected_product', JSON.stringify(product));
+    window.location.href = detailLink.href;
   }
 });
 
@@ -537,7 +446,7 @@ function getProductById(id) {
     }
   }
 
-  return sampleProducts.find((p) => String(p.id) === normalizedId) || {
+  return {
     id: normalizedId,
     name: 'Sản phẩm không xác định',
     price: 0,
