@@ -36,7 +36,7 @@ function toNumberPrice(value) {
 function getProductImage(product) {
     const fallback = "https://placehold.co/600x400/fff9f3/1a1a1a?text=No+Image";
     if (!product) return fallback;
-    const candidates = [product.image, product.main_image, product.thumbnail, product.image_url, product.pic];
+    const candidates = [product.img, product.image, product.main_image, product.thumbnail, product.image_url, product.pic];
     for (const candidate of candidates) {
         if (typeof candidate === "string" && candidate.trim()) return candidate;
     }
@@ -261,7 +261,7 @@ function renderProducts() {
                     </div>
                     <div class="card-actions">
                         <button class="add-to-cart" onclick="quickAddToCart('${product.id}')">Thêm vào giỏ</button>
-                        <a href="product.html?id=${encodeURIComponent(product.id)}" class="detail-link">Chi tiết</a>
+                        <a href="javascript:void(0)" onclick="showProductDetail('${product.id}')" class="detail-link">Chi tiết</a>
                     </div>
                 </div>
             </div>
@@ -289,9 +289,12 @@ function filterByCategory(category) {
 
 // 6. Chi tiết Sản phẩm Tương tác (Product Detail Panel)
 function showProductDetail(productId) {
-    const product = PRODUCTS.find(p => p.id === productId);
+    const product = PRODUCTS.find(p => String(p.id) === String(productId) || String(p.item_id) === String(productId));
     if (!product) return;
 
+    // Lưu product vào sessionStorage để trang chi tiết có thể đọc mà không cần gọi API lại
+    sessionStorage.setItem("giga_selected_product", JSON.stringify(product));
+    
     window.location.href = `product.html?id=${encodeURIComponent(productId)}`;
 }
 

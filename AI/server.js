@@ -294,10 +294,11 @@ app.get('/api/lazada', async (req, res) => {
 
     res.json(response.data);
   } catch (error) {
-    console.error('Lazada proxy error:', error?.response?.data || error.message);
+    const rapidApiError = error?.response?.data?.message || error.message;
+    console.error('Lazada proxy error:', rapidApiError);
     res.status(500).json({
-      error: 'Lỗi gọi Lazada API',
-      detail: error.message,
+      error: 'Lỗi gọi Lazada API (Hết Quota)',
+      detail: rapidApiError,
     });
   }
 });
