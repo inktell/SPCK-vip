@@ -1,7 +1,7 @@
 // Giga E-Commerce App Logic (main.js)
 
 // 1. Dữ liệu sản phẩm (ưu tiên API RapidAPI)
-const API_BASE = "http://localhost:3000";
+const API_BASE = "http://localhost:3001";
 const CART_STORAGE_KEY = "giga_cart";
 let PRODUCTS = [];
 

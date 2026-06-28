@@ -6,8 +6,8 @@ const firebaseConfig = {
   authDomain: "bai-3-2f0fc.firebaseapp.com",
   projectId: "bai-3-2f0fc",
   storageBucket: "bai-3-2f0fc.firebasestorage.app",
-  messagingSenderId: "300263596892",
-  appId: "1:300263596892:web:55c18b93e96985c55b3a39",
+  messagingSenderId: "300263576892",
+  appId: "1:300263576892:web:55c18b93e96985c55b3a39",
   measurementId: "G-38NJ0S7XEP"
 };
 

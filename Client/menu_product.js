@@ -17,7 +17,7 @@ const auth = firebase.auth();
 const db = firebase.firestore();
 const ADMIN_EMAIL = 'admin@giga.com';
 
-const API_BASE = 'http://localhost:3000';
+const API_BASE = 'http://localhost:3001';
 const PRODUCT_CACHE_KEY = 'giga_products_cache';
 const PLACEHOLDER_IMAGE = 'https://placehold.co/400x300?text=No+Image';
 

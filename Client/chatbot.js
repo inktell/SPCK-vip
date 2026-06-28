@@ -6,7 +6,7 @@ class ChatBot {
         this.isOpen = false;
         this.messages = [];
         this.isWaitingForResponse = false;
-        this.apiBaseUrl = 'http://localhost:3000';
+        this.apiBaseUrl = 'http://localhost:3001';
         this.init();
     }
 
@@ -126,12 +126,20 @@ class ChatBot {
                 body: JSON.stringify({ question }),
             });
 
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
+            let data = {};
+            try {
+                data = await response.json();
+            } catch (e) {
+                console.warn("Response is not JSON");
             }
 
-            const data = await response.json();
             this.removeTypingIndicator();
+
+            if (!response.ok) {
+                this.addMessage(`❌ Lỗi hệ thống (${response.status}): ${data.error || 'Vui lòng thử lại sau.'}`, 'bot');
+                this.isWaitingForResponse = false;
+                return;
+            }
 
             if (data.error) {
                 this.addMessage(`❌ Lỗi: ${data.error}`, 'bot');
@@ -142,7 +150,7 @@ class ChatBot {
             console.error('API Error:', error);
             this.removeTypingIndicator();
             this.addMessage(
-                '⚠️ Không thể kết nối với server AI. Vui lòng kiểm tra:\n1. Server AI đang chạy? (npm start trong folder AI)\n2. Cổng 3000 có mở không?',
+                '⚠️ Không thể kết nối với server AI. Vui lòng kiểm tra:\n1. Server AI đang chạy? (npm start trong folder AI)\n2. Cổng 3001 có mở không?',
                 'bot'
             );
         } finally {
