@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Giga - Trải nghiệm mua sắm đẳng cấp và tinh tế</title>
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="style.css?v=6">
     
     <!-- Google Fonts for premium typography -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -64,51 +64,95 @@
 
     <main>
         <!-- Home / Welcome & Landing Section -->
-        <section id="home" class="hero">
-            <h1>Chào mừng đến với Giga</h1>
-            <p>Khám phá không gian sống sang trọng, tối giản với tốc độ giao dịch vượt trội và chất lượng đẳng cấp châu Âu.</p>
-            <button id="shop-now" onclick="showSection('shop')">Mua sắm ngay</button>
-
-            <!-- Value / Quality Advertisement Grid -->
-            <div class="page-shell" style="padding: 4rem 0 0; width: 100%; max-width: 1200px;">
-                <div class="hero-badges" aria-label="Ưu điểm nổi bật">
-                    <span>✨ Bán chạy nhất 2026</span>
-                    <span>🚚 Giao hàng trong 2 giờ</span>
-                    <span>🛡️ Bảo hành chính hãng</span>
-                </div>
-                <h2 style="font-size: 2.2rem; font-weight: 800; text-align: center; margin-bottom: 2.5rem; letter-spacing: -0.5px;">Tại sao chọn Giga?</h2>
-                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1.5rem; text-align: left;">
+        <section id="home" class="home-wrapper">
+            <!-- 1. Hero Section -->
+            <div class="hero-new">
+                <div class="hero-content">
+                    <h1 class="hero-title">Định Hình Phong Cách Sống<br>Tối Giản & Tinh Tế</h1>
+                    <p class="hero-subtitle">Khám phá không gian sống sang trọng với tốc độ giao dịch vượt trội và chất lượng nội thất đẳng cấp châu Âu.</p>
+                    <button id="shop-now" onclick="showSection('shop')" class="hero-btn">Khám Phá Ngay</button>
                     
-                    <!-- Quality Ad Card 1 -->
-                    <div class="panel" style="background: #fff; border-radius: 20px; border: 1px solid var(--border-color); padding: 2rem;">
-                        <div style="background: var(--surface-color); width: 50px; height: 50px; border-radius: 12px; display: flex; align-items: center; justify-content: center; margin-bottom: 1.25rem;">
-                            <!-- SVG Premium Trophy Icon -->
-                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--secondary-color)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"></path><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"></path><path d="M4 22h16"></path><path d="M10 14.66V17c0 .55-.45 1-1 1H4v2h16v-2h-5c-.55 0-1-.45-1-1v-2.34"></path><path d="M12 2a5 5 0 0 1 5 5v5a5 5 0 0 1-10 0V7a5 5 0 0 1 5-5z"></path></svg>
-                        </div>
-                        <h3 style="font-size: 1.25rem; font-weight: 700; margin-bottom: 0.75rem;">Chất lượng tuyệt mỹ</h3>
-                        <p style="color: var(--text-secondary); font-size: 0.95rem; line-height: 1.5;">Tuyển chọn khắt khe từ các vật liệu tự nhiên cao cấp như gỗ sồi nguyên khối, đồng thau và da thuộc nhập khẩu.</p>
+                    <div class="hero-badges-new">
+                        <span>✨ Thiết kế Độc Bản</span>
+                        <span>🚚 Giao hàng 2H</span>
+                        <span>🛡️ Bảo hành 5 Năm</span>
                     </div>
+                </div>
+            </div>
 
-                    <!-- Quality Ad Card 2 -->
-                    <div class="panel" style="background: #fff; border-radius: 20px; border: 1px solid var(--border-color); padding: 2rem;">
-                        <div style="background: var(--surface-color); width: 50px; height: 50px; border-radius: 12px; display: flex; align-items: center; justify-content: center; margin-bottom: 1.25rem;">
-                            <!-- SVG Fast Shipping Icon -->
-                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--secondary-color)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="3" width="15" height="13"></rect><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"></polygon><circle cx="5.5" cy="18.5" r="2.5"></circle><circle cx="18.5" cy="18.5" r="2.5"></circle></svg>
-                        </div>
-                        <h3 style="font-size: 1.25rem; font-weight: 700; margin-bottom: 0.75rem;">Vận chuyển hỏa tốc</h3>
-                        <p style="color: var(--text-secondary); font-size: 0.95rem; line-height: 1.5;">Hệ thống kho bãi thông minh giúp tối ưu thời gian đóng gói và vận chuyển đến tay bạn trong thời gian siêu tốc.</p>
+            <!-- 2. Featured Categories -->
+            <div class="home-container">
+                <h2 class="section-title">Danh Mục Nổi Bật</h2>
+                <div class="category-grid">
+                    <div class="cat-card" onclick="showSection('shop'); setTimeout(()=>filterByCategory('chair'), 100)">
+                        <img src="https://images.unsplash.com/photo-1598300042247-d088f8ab3a91?w=500&q=80" alt="Ghế">
+                        <div class="cat-overlay"><h3>Ghế Hiện Đại</h3></div>
                     </div>
-
-                    <!-- Quality Ad Card 3 -->
-                    <div class="panel" style="background: #fff; border-radius: 20px; border: 1px solid var(--border-color); padding: 2rem;">
-                        <div style="background: var(--surface-color); width: 50px; height: 50px; border-radius: 12px; display: flex; align-items: center; justify-content: center; margin-bottom: 1.25rem;">
-                            <!-- SVG Minimalist Heart Icon -->
-                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--secondary-color)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"></path></svg>
-                        </div>
-                        <h3 style="font-size: 1.25rem; font-weight: 700; margin-bottom: 0.75rem;">Thiết kế độc bản</h3>
-                        <p style="color: var(--text-secondary); font-size: 0.95rem; line-height: 1.5;">Bộ sưu tập mang đậm tinh thần Bắc Âu (Scandinavian) và chủ nghĩa tối giản tối thượng (Minimalism).</p>
+                    <div class="cat-card" onclick="showSection('shop'); setTimeout(()=>filterByCategory('sofa'), 100)">
+                        <img src="https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=500&q=80" alt="Sofa">
+                        <div class="cat-overlay"><h3>Sofa Cao Cấp</h3></div>
                     </div>
+                    <div class="cat-card" onclick="showSection('shop'); setTimeout(()=>filterByCategory('lighting'), 100)">
+                        <img src="https://images.unsplash.com/photo-1513694203232-719a280e022f?w=500&q=80" alt="Đèn">
+                        <div class="cat-overlay"><h3>Đèn Trang Trí</h3></div>
+                    </div>
+                    <div class="cat-card" onclick="showSection('shop'); setTimeout(()=>filterByCategory('table'), 100)">
+                        <img src="https://images.unsplash.com/photo-1533090481720-856c6e3c1fdc?w=500&q=80" alt="Bàn">
+                        <div class="cat-overlay"><h3>Bàn Tối Giản</h3></div>
+                    </div>
+                </div>
+            </div>
 
+            <!-- 3. Why Choose Us -->
+            <div class="home-container" style="background: var(--surface-color); padding: 4rem 2rem; border-radius: 20px; margin-top: 3rem;">
+                <h2 class="section-title" style="margin-bottom: 2.5rem;">Tại sao chọn Giga?</h2>
+                <div class="features-grid">
+                    <div class="feature-card">
+                        <div class="icon-box">
+                            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="var(--secondary-color)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"></path><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"></path><path d="M4 22h16"></path><path d="M10 14.66V17c0 .55-.45 1-1 1H4v2h16v-2h-5c-.55 0-1-.45-1-1v-2.34"></path><path d="M12 2a5 5 0 0 1 5 5v5a5 5 0 0 1-10 0V7a5 5 0 0 1 5-5z"></path></svg>
+                        </div>
+                        <h3>Chất lượng tuyệt mỹ</h3>
+                        <p>Tuyển chọn khắt khe từ các vật liệu tự nhiên cao cấp như gỗ sồi nguyên khối, đồng thau và da thuộc nhập khẩu.</p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="icon-box">
+                            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="var(--secondary-color)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="3" width="15" height="13"></rect><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"></polygon><circle cx="5.5" cy="18.5" r="2.5"></circle><circle cx="18.5" cy="18.5" r="2.5"></circle></svg>
+                        </div>
+                        <h3>Vận chuyển hỏa tốc</h3>
+                        <p>Hệ thống kho bãi thông minh giúp tối ưu thời gian đóng gói và vận chuyển đến tay bạn trong thời gian siêu tốc.</p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="icon-box">
+                            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="var(--secondary-color)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"></path></svg>
+                        </div>
+                        <h3>Thiết kế độc bản</h3>
+                        <p>Bộ sưu tập mang đậm tinh thần Bắc Âu (Scandinavian) và chủ nghĩa tối giản tối thượng (Minimalism).</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 4. Brand Story -->
+            <div class="home-container brand-story">
+                <div class="story-image">
+                    <img src="https://images.unsplash.com/photo-1600210492486-724fe5c67fb0?w=800&q=80" alt="Giga Concept">
+                </div>
+                <div class="story-text">
+                    <h2>Nghệ Thuật Của Sự Tối Giản</h2>
+                    <p>Tại Giga, chúng tôi tin rằng vẻ đẹp thực sự đến từ sự đơn giản. Mỗi món đồ nội thất không chỉ là một vật dụng, mà là một tác phẩm nghệ thuật định hình phong cách sống của bạn.</p>
+                    <p>Sự kết hợp hoàn hảo giữa công năng và thẩm mỹ, mang đến cho bạn một không gian tĩnh lặng, an yên giữa cuộc sống hối hả.</p>
+                    <button class="outline-btn" onclick="showSection('shop')">Khám Phá Bộ Sưu Tập</button>
+                </div>
+            </div>
+
+            <!-- 5. Newsletter -->
+            <div class="newsletter-section">
+                <div class="newsletter-content">
+                    <h2>Nhận Ưu Đãi Đặc Quyền</h2>
+                    <p>Đăng ký nhận bản tin để cập nhật những xu hướng nội thất mới nhất và voucher giảm giá 10% cho đơn hàng đầu tiên.</p>
+                    <form class="newsletter-form" onsubmit="event.preventDefault(); alert('Cảm ơn bạn đã đăng ký!');">
+                        <input type="email" placeholder="Nhập email của bạn..." required>
+                        <button type="submit">Đăng Ký</button>
+                    </form>
                 </div>
             </div>
         </section>
